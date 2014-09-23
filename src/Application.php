@@ -49,6 +49,7 @@ class Application extends Console\Application {
         $this->add(new Command\EnvironmentSshCommand);
         $this->add(new Command\EnvironmentSynchronizeCommand);
         $this->add(new Command\EnvironmentUrlCommand);
+        $this->add(new Command\LoginCommand);
         $this->add(new Command\ProjectBuildCommand);
         $this->add(new Command\ProjectCleanCommand);
         $this->add(new Command\ProjectDrushAliasesCommand);

@@ -4,6 +4,7 @@ namespace CommerceGuys\Platform\Cli\Command;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PlatformLoginCommand extends PlatformCommand
@@ -13,12 +14,9 @@ class PlatformLoginCommand extends PlatformCommand
     {
         $this
             ->setName('login')
-            ->setDescription('Log in to Platform.sh');
-    }
-
-    public function isLocal()
-    {
-        return true;
+            ->setDescription('Log in to Platform.sh')
+            ->addOption('username', null, InputOption::VALUE_OPTIONAL, 'Your username')
+            ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'Your password');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
