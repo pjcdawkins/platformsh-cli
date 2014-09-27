@@ -17,38 +17,25 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
             ->setAliases(array('checkout'))
             ->setDescription('Checkout an environment.')
             ->addArgument(
-                'branch-id',
-                InputArgument::OPTIONAL,
-                'The id of the branch to checkout. For example: "sprint2"'
-            )
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project id'
-            )
-            ->addOption(
                 'environment',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The environment id'
+                InputArgument::REQUIRED,
+                'The environment to checkout. For example: "sprint2"'
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (!$this->validateInput($input, $output)) {
-            return;
-        }
-        $branch = $input->getArgument('branch-id');
-        if (empty($branch)) {
-            $output->writeln("<error>You must specify the id of the branch to checkout.</error>");
-            return;
-        }
-
-        // Checkout the new branch locally.
+        $environmentId = $input->getArgument('environment');
         $projectRoot = $this->getProjectRoot();
+        if (empty($projectRoot)) {
+            $output->writeln("<error>You must run this command from a project folder.</error>");
+            return;
+        }
+        if (!$this->getEnvironment($environmentId)) {
+            $output->writeln("<error>Environment not found: $environmentId</error>");
+            return;
+        }
         $repositoryDir = $projectRoot . '/repository';
-        passthru("cd $repositoryDir && git fetch origin && git checkout $branch");
+        passthru("cd $repositoryDir && git fetch origin && git checkout $environmentId");
     }
 }
