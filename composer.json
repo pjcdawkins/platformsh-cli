@@ -3,13 +3,18 @@
     "description": "Platform.sh CLI",
     "license": "MIT",
     "require": {
-        "commerceguys/guzzle-oauth2-plugin": "~1.0",
+        "commerceguys/guzzle-5-oauth2-plugin": "dev-guzzle5-support",
         "symfony/console": "~2.5",
         "symfony/yaml": "~2.5",
         "symfony/finder": "~2.5",
-        "symfony/filesystem": "~2.5",
-        "symfony/process": "~2.5"
+        "guzzlehttp/guzzle-services": "~0.4.0"
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url":  "https://github.com/pjcdawkins/guzzle-oauth2-plugin.git"
+        }
+    ],
     "suggest": {
         "drush/drush": "For Drupal projects"
     },

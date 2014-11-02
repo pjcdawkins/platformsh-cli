@@ -12,39 +12,33 @@ class EnvironmentUrlCommand extends EnvironmentCommand
 
     protected function configure()
     {
-        $this
-            ->setName('environment:url')
-            ->setAliases(array('url'))
-            ->setDescription('Get the public URL to an environment, and open it in a browser.')
-            ->addArgument(
-                'path',
-                InputArgument::OPTIONAL,
-                'A path to append to the URL.'
-            )
-            ->addOption(
-                'browser',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The browser to use to open the URL. Set 0 for none.'
-            )
-            ->addOption(
-                'pipe',
-                null,
-                InputOption::VALUE_NONE,
-                'Output the raw URL, suitable for piping to another command.'
-            )
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            )
-            ->addOption(
-                'environment',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The environment ID'
-            );
+        $this->setName('environment:url')->setAliases(['url'])->setDescription(
+            'Get the public URL to an environment, and open it in a browser.'
+          )->addArgument(
+            'path',
+            InputArgument::OPTIONAL,
+            'A path to append to the URL.'
+          )->addOption(
+            'browser',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The browser to use to open the URL. Set 0 for none.'
+          )->addOption(
+            'pipe',
+            null,
+            InputOption::VALUE_NONE,
+            'Output the raw URL, suitable for piping to another command.'
+          )->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption(
+            'environment',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The environment ID'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -66,6 +60,7 @@ class EnvironmentUrlCommand extends EnvironmentCommand
 
         if ($input->getOption('pipe')) {
             $output->write($url);
+
             return;
         }
 
@@ -74,18 +69,16 @@ class EnvironmentUrlCommand extends EnvironmentCommand
         if ($browser === '0') {
             // The user has requested not to use a browser.
             $browser = false;
-        }
-        elseif (empty($browser)) {
+        } elseif (empty($browser)) {
             // Find a default browser to use.
-            $defaults = array('xdg-open', 'open', 'start');
+            $defaults = ['xdg-open', 'open', 'start'];
             foreach ($defaults as $default) {
                 if (shell_exec("which $default")) {
                     $browser = $default;
                     break;
                 }
             }
-        }
-        elseif (!shell_exec('which ' . escapeshellarg($browser))) {
+        } elseif (!shell_exec('which ' . escapeshellarg($browser))) {
             // The user has specified a browser, but it can't be found.
             $output->writeln("<error>Browser not found: $browser</error>");
             $browser = false;

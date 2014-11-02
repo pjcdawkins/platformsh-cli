@@ -12,14 +12,11 @@ class SshKeyAddCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('ssh-key:add')
-            ->setDescription('Add a new SSH key.')
-            ->addArgument(
-                'path',
-                InputArgument::OPTIONAL,
-                'The path to the ssh key'
-            );
+        $this->setName('ssh-key:add')->setDescription('Add a new SSH key.')->addArgument(
+            'path',
+            InputArgument::OPTIONAL,
+            'The path to the ssh key'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -27,10 +24,12 @@ class SshKeyAddCommand extends PlatformCommand
         $path = $input->getArgument('path');
         if (empty($path)) {
             $output->writeln("<error>You must specify the path to the key.</error>");
+
             return;
         }
         if (!file_exists($path)) {
             $output->writeln("<error>Key not found.<error>");
+
             return;
         }
 
@@ -39,7 +38,7 @@ class SshKeyAddCommand extends PlatformCommand
         $title = $helper->ask($input, $output, new Question('Enter a name for the key: '));
 
         $client = $this->getAccountClient();
-        $client->createSshKey(array('title' => $title, 'value' => $key));
+        $client->createSshKey(['title' => $title, 'value' => $key]);
 
         $message = '<info>';
         $message .= "\nThe given key has been successfully added. \n";

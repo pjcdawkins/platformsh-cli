@@ -14,20 +14,16 @@ class DomainDeleteCommand extends PlatformCommand
      */
     protected function configure()
     {
-        $this
-            ->setName('domain:delete')
-            ->setDescription('Delete a domain from the project.')
-            ->addArgument(
-                'name',
-                InputArgument::OPTIONAL,
-                'The name of the domain'
-            )
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            );
+        $this->setName('domain:delete')->setDescription('Delete a domain from the project.')->addArgument(
+            'name',
+            InputArgument::OPTIONAL,
+            'The name of the domain'
+          )->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          );
     }
 
     /**
@@ -49,6 +45,7 @@ class DomainDeleteCommand extends PlatformCommand
         $name = $input->getArgument('name');
         if (empty($name)) {
             $output->writeln("<error>You must specify the name of the domain.</error>");
+
             return 1;
         }
 
@@ -60,6 +57,7 @@ class DomainDeleteCommand extends PlatformCommand
         $client->deleteDomain();
 
         $output->writeln("The domain <info>$name</info> has been deleted.");
+
         return 0;
     }
 }

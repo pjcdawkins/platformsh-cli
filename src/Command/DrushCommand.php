@@ -12,9 +12,9 @@ class DrushCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('drush')
-            ->setDescription('Invoke a drush command using the site alias for the current environment.');
+        $this->setName('drush')->setDescription(
+            'Invoke a drush command using the site alias for the current environment.'
+          );
         $this->ignoreValidationErrors();
     }
 
@@ -24,6 +24,7 @@ class DrushCommand extends PlatformCommand
         if ($projectRoot) {
             return Drupal::isDrupal($projectRoot . '/repository');
         }
+
         return true;
     }
 
@@ -38,11 +39,13 @@ class DrushCommand extends PlatformCommand
         $this->project = $this->getCurrentProject();
         if (!$this->project) {
             $output->writeln("<error>You must run this command from a project folder.</error>");
+
             return;
         }
         $this->environment = $this->getCurrentEnvironment($this->project);
         if (!$this->environment) {
             $output->writeln("<error>Could not determine the current environment.</error>");
+
             return;
         }
 

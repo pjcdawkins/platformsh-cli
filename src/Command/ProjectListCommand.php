@@ -10,17 +10,15 @@ class ProjectListCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('projects')
-            ->setDescription('Get a list of all active projects.');
+        $this->setName('projects')->setDescription('Get a list of all active projects.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $projects = $this->getProjects(true);
-        $rows = array();
+        $rows = [];
         foreach ($projects as $projectId => $project) {
-            $row = array();
+            $row = [];
             $row[] = $projectId;
             $row[] = $project['name'];
             $row[] = $project['uri'];
@@ -29,9 +27,7 @@ class ProjectListCommand extends PlatformCommand
 
         $output->writeln("\nYour projects are: ");
         $table = $this->getHelperSet()->get('table');
-        $table
-            ->setHeaders(array('ID', 'Name', "URL"))
-            ->setRows($rows);
+        $table->setHeaders(['ID', 'Name', "URL"])->setRows($rows);
         $table->render($output);
 
         $output->writeln("\nGet a project by running <info>platform get [id]</info>.");

@@ -10,7 +10,8 @@ class Drupal extends ToolstackBase
 
     public $buildMode;
 
-    public function getKey() {
+    public function getKey()
+    {
         return 'php:drupal';
     }
 
@@ -18,19 +19,16 @@ class Drupal extends ToolstackBase
      * Detect if there are any Drupal applications in a folder.
      *
      * @param string $directory
-     * @param mixed $depth
+     * @param mixed  $depth
      *
      * @return bool
      */
-    public static function isDrupal($directory, $depth = '< 2') {
+    public static function isDrupal($directory, $depth = '< 2')
+    {
         $finder = new Finder();
-        $finder->in($directory)
-            ->files()
-            ->depth($depth)
-            ->name('project.make')
-            ->name('project-core.make')
-            ->name('drupal-org.make')
-            ->name('drupal-org-core.make');
+        $finder->in($directory)->files()->depth($depth)->name('project.make')->name('project-core.make')->name(
+            'drupal-org.make'
+          )->name('drupal-org-core.make');
         foreach ($finder as $file) {
             return true;
         }
@@ -43,6 +41,7 @@ class Drupal extends ToolstackBase
                 return true;
             }
         }
+
         return false;
     }
 
@@ -69,17 +68,15 @@ class Drupal extends ToolstackBase
         $buildDir = $this->buildDir;
 
         // Options to pass to the drush command.
-        $drushFlags = array();
+        $drushFlags = [];
         $drushFlags[] = '--yes';
         if (!empty($this->settings['verbosity'])) {
             $verbosity = $this->settings['verbosity'];
             if ($verbosity === OutputInterface::VERBOSITY_QUIET) {
                 $drushFlags[] = '--quiet';
-            }
-            elseif ($verbosity === OutputInterface::VERBOSITY_DEBUG) {
+            } elseif ($verbosity === OutputInterface::VERBOSITY_DEBUG) {
                 $drushFlags[] = '--debug';
-            }
-            elseif ($verbosity >= OutputInterface::VERBOSITY_VERBOSE) {
+            } elseif ($verbosity >= OutputInterface::VERBOSITY_VERBOSE) {
                 $drushFlags[] = '--verbose';
             }
         }
@@ -99,13 +96,13 @@ class Drupal extends ToolstackBase
             throw new \Exception("Found multiple files ending in '*.profile' in the directory.");
         }
 
-        $symlinkBlacklist = array(
+        $symlinkBlacklist = [
           '.*',
           '*.make',
           'sites.php',
           'robots.txt',
           'config',
-        );
+        ];
 
         if (count($profiles) == 1) {
             $this->buildMode = 'profile';
@@ -127,9 +124,11 @@ class Drupal extends ToolstackBase
                 throw new \Exception("Couldn't find a project-core.make or drupal-org-core.make in the directory.");
             }
 
-            $drushCommand = "drush make $drushFlags " . escapeshellarg($projectCoreMake) . " " . escapeshellarg($buildDir);
+            $drushCommand = "drush make $drushFlags " . escapeshellarg($projectCoreMake) . " " . escapeshellarg(
+                $buildDir
+              );
             exec($drushCommand, $output, $return_var);
-            if ($return_var > 0  || !is_dir($buildDir)) {
+            if ($return_var > 0 || !is_dir($buildDir)) {
                 throw new \Exception('Drush command failed: ' . $drushCommand);
             }
             // Drush will only create the $buildDir if the build succeeds.
@@ -157,9 +156,8 @@ class Drupal extends ToolstackBase
             if ($return_var > 0 || !is_dir($buildDir)) {
                 throw new \Exception('Drush command failed: ' . $drushCommand);
             }
-            $this->fsHelper->symlinkAll($this->appRoot, $buildDir . '/sites/default', true, $symlinkBlacklist);
-        }
-        else {
+            $this->symlink($this->appRoot, $buildDir . '/sites/default', true, $symlinkBlacklist);
+        } else {
             $this->buildMode = 'vanilla';
             $this->buildDir = $this->appRoot;
         }
@@ -178,7 +176,10 @@ class Drupal extends ToolstackBase
 
         // Create the settings.local.php if it doesn't exist in either shared/
         // or in the app.
-        if (!file_exists($this->projectRoot . '/shared/settings.local.php') && !file_exists($buildDir . '/sites/default/settings.local.php')) {
+        if (!file_exists($this->projectRoot . '/shared/settings.local.php') && !file_exists(
+            $buildDir . '/sites/default/settings.local.php'
+          )
+        ) {
             copy(CLI_ROOT . '/resources/drupal/settings.local.php', $this->projectRoot . '/shared/settings.local.php');
         }
 
@@ -191,9 +192,15 @@ class Drupal extends ToolstackBase
 
         // Create a .gitignore file if it's missing, and if this app is the
         // whole repository.
-        if ($this->appRoot == $this->projectRoot . '/repository' && !file_exists($this->projectRoot . '/repository/.gitignore')) {
+        if ($this->appRoot == $this->projectRoot . '/repository' && !file_exists(
+            $this->projectRoot . '/repository/.gitignore'
+          )
+        ) {
             // There is a different default gitignore file for each build mode.
-            copy(CLI_ROOT . '/resources/drupal/gitignore-' . $this->buildMode, $this->projectRoot . '/repository/.gitignore');
+            copy(
+              CLI_ROOT . '/resources/drupal/gitignore-' . $this->buildMode,
+              $this->projectRoot . '/repository/.gitignore'
+            );
         }
 
         // Symlink all files and folders from shared.

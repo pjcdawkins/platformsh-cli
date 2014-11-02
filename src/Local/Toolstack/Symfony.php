@@ -5,7 +5,8 @@ namespace CommerceGuys\Platform\Cli\Local\Toolstack;
 class Symfony extends ToolstackBase
 {
 
-    public function getKey() {
+    public function getKey()
+    {
         return 'php:symfony';
     }
 
@@ -15,11 +16,11 @@ class Symfony extends ToolstackBase
             $json = file_get_contents($appRoot . '/composer.json');
             $composer_json = json_decode($json);
             if (property_exists($composer_json->require, "symfony/symfony")) {
-              return TRUE; // @todo: Find a better way to test for Symfony. Some projects do not have this dep.
+                return true; // @todo: Find a better way to test for Symfony. Some projects do not have this dep.
             }
         }
-        
-        return FALSE;
+
+        return false;
     }
 
     public function build()
@@ -35,15 +36,15 @@ class Symfony extends ToolstackBase
         if (is_dir($buildDir)) {
             chdir($buildDir);
             shell_exec("composer install --no-progress --no-interaction  --working-dir " . escapeshellcmd($buildDir));
-        }
-        else {
-          throw new \Exception("Couldn't create build directory");
+        } else {
+            throw new \Exception("Couldn't create build directory");
         }
 
         return true;
     }
 
-    public function install() {
+    public function install()
+    {
         $buildDir = $this->buildDir;
 
         // The build has been done, create a config_dev.yml if it is missing.

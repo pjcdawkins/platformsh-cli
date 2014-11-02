@@ -11,21 +11,17 @@ class EnvironmentDeactivateCommand extends EnvironmentCommand
 
     protected function configure()
     {
-        $this
-            ->setName('environment:deactivate')
-            ->setDescription('Deactivate an environment.')
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            )
-            ->addOption(
-                'environment',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The environment ID'
-            );
+        $this->setName('environment:deactivate')->setDescription('Deactivate an environment.')->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption(
+            'environment',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The environment ID'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -37,19 +33,29 @@ class EnvironmentDeactivateCommand extends EnvironmentCommand
         $environmentId = $this->environment['id'];
         if ($environmentId == 'master') {
             $output->writeln("<error>The master environment cannot be deactivated or deleted.</error>");
+
             return 1;
         }
 
         if (!$this->operationAllowed('deactivate')) {
             if (empty($this->environment['_links']['public-url'])) {
                 $output->writeln("The environment <info>$environmentId</info> is already inactive.");
+
                 return 0;
             }
-            $output->writeln("<error>Operation not permitted: The environment '$environmentId' can't be deactivated.</error>");
+            $output->writeln(
+              "<error>Operation not permitted: The environment '$environmentId' can't be deactivated.</error>"
+            );
+
             return 1;
         }
 
-        if (!$this->confirm("Are you sure you want to deactivate the environment <info>$environmentId</info>? [Y/n] ", $input, $output)) {
+        if (!$this->confirm(
+          "Are you sure you want to deactivate the environment <info>$environmentId</info>? [Y/n] ",
+          $input,
+          $output
+        )
+        ) {
             return 0;
         }
 
@@ -59,6 +65,7 @@ class EnvironmentDeactivateCommand extends EnvironmentCommand
         $this->getEnvironments($this->project, true);
 
         $output->writeln("The environment <info>$environmentId</info> has been deactivated.");
+
         return 0;
     }
 }

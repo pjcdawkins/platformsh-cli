@@ -12,15 +12,14 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
 
     protected function configure()
     {
-        $this
-            ->setName('environment:checkout')
-            ->setAliases(array('checkout'))
-            ->setDescription('Check out an environment.')
-            ->addArgument(
-                'id',
-                InputArgument::OPTIONAL,
-                'The ID of the environment to check out. For example: "sprint2"'
-            );
+        $this->setName('environment:checkout')
+          ->setAliases(['checkout'])
+          ->setDescription('Check out an environment.')
+          ->addArgument(
+            'id',
+            InputArgument::OPTIONAL,
+            'The ID of the environment to check out. For example: "sprint2"'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -33,11 +32,7 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
         $branch = $input->getArgument('id');
         if (empty($branch) && $input->isInteractive()) {
             $environments = $this->getEnvironments($project);
-            $currentEnvironment = $this->getCurrentEnvironment($project);
-            if ($currentEnvironment) {
-                $output->writeln("The current environment is <info>{$currentEnvironment['id']}</info>.");
-            }
-            $environmentList = array();
+            $environmentList = [];
             foreach ($environments as $environment) {
                 if ($currentEnvironment && $environment['id'] == $currentEnvironment['id']) {
                     continue;
@@ -53,12 +48,11 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
             $question = new ChoiceQuestion($chooseEnvironmentText, $environmentList);
             $question->setMaxAttempts(5);
             $machineName = $helper->ask($input, $output, $question);
-        }
-        elseif (empty($branch)) {
+        } elseif (empty($branch)) {
             $output->writeln("<error>No branch specified.</error>");
+
             return 1;
-        }
-        else {
+        } else {
             $machineName = $this->sanitizeEnvironmentId($branch);
         }
 
@@ -74,6 +68,7 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
         if (!$existsLocal) {
             if (!$this->getEnvironment($machineName, $project)) {
                 $output->writeln("<error>Environment not found: $machineName</error>");
+
                 return 1;
             }
             // Fetch from origin.

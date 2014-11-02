@@ -11,21 +11,17 @@ class EnvironmentActivateCommand extends EnvironmentCommand
 
     protected function configure()
     {
-        $this
-            ->setName('environment:activate')
-            ->setDescription('Activate an environment.')
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            )
-            ->addOption(
-                'environment',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The environment ID'
-            );
+        $this->setName('environment:activate')->setDescription('Activate an environment.')->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption(
+            'environment',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The environment ID'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -39,9 +35,13 @@ class EnvironmentActivateCommand extends EnvironmentCommand
         if (!$this->operationAllowed('activate')) {
             if (!empty($this->environment['_links']['public-url'])) {
                 $output->writeln("The environment <info>$environmentId</info> is already active.");
+
                 return 0;
             }
-            $output->writeln("<error>Operation not permitted: The environment '$environmentId' can't be activated.</error>");
+            $output->writeln(
+              "<error>Operation not permitted: The environment '$environmentId' can't be activated.</error>"
+            );
+
             return 1;
         }
 
@@ -49,6 +49,7 @@ class EnvironmentActivateCommand extends EnvironmentCommand
         $client->activateEnvironment();
 
         $output->writeln("The environment <info>$environmentId</info> has been activated.");
+
         return 0;
     }
 }

@@ -12,18 +12,22 @@ class ProjectDrushAliasesCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('project:drush-aliases')
-            ->setAliases(array('drush-aliases'))
-            ->addOption('recreate', 'r', InputOption::VALUE_NONE, 'Recreate the aliases.')
-            ->addOption('group', 'g', InputOption::VALUE_OPTIONAL, 'Recreate the aliases with a new group name.')
-            ->addOption('pipe', 'p', InputOption::VALUE_NONE, 'Output the current group name (do nothing else).')
-            ->setDescription('Determine and/or recreate the project\'s Drush aliases (if any).');
+        $this->setName('project:drush-aliases')
+          ->setAliases(['drush-aliases'])
+          ->addOption(
+            'recreate',
+            'r',
+            InputOption::VALUE_NONE,
+            'Recreate the aliases.'
+          )
+          ->addOption('group', 'g', InputOption::VALUE_OPTIONAL, 'Recreate the aliases with a new group name.')
+          ->addOption('pipe', 'p', InputOption::VALUE_NONE, 'Output the current group name (do nothing else).')
+          ->setDescription('Determine and/or recreate the project\'s Drush aliases (if any).');
     }
 
     public function isLocal()
     {
-      return TRUE;
+        return true;
     }
 
     public function isEnabled()
@@ -32,6 +36,7 @@ class ProjectDrushAliasesCommand extends PlatformCommand
         if ($projectRoot) {
             return Drupal::isDrupal($projectRoot . '/repository');
         }
+
         return true;
     }
 
@@ -50,6 +55,7 @@ class ProjectDrushAliasesCommand extends PlatformCommand
 
         if ($input->getOption('pipe')) {
             $output->writeln($current_group);
+
             return;
         }
 
@@ -64,7 +70,13 @@ class ProjectDrushAliasesCommand extends PlatformCommand
         if ($new_group && $new_group != $current_group) {
             $existing = $shellHelper->execute("drush site-alias --pipe --format=list @" . escapeshellarg($new_group));
             if ($existing) {
-                if (!$this->confirm("The alias group <info>@$new_group</info> already exists. Overwrite? [y/N] ", $input, $output, false)) {
+                if (!$this->confirm(
+                  "The alias group @$new_group already exists. Overwrite? [y/N] ",
+                  $input,
+                  $output,
+                  false
+                )
+                ) {
                     return;
                 }
             }
@@ -86,8 +98,7 @@ class ProjectDrushAliasesCommand extends PlatformCommand
             $shellHelper->execute('drush cache-clear drush');
 
             $current_group = $new_group;
-        }
-        elseif ($input->getOption('recreate')) {
+        } elseif ($input->getOption('recreate')) {
             $environments = $this->getEnvironments($project, true, false);
             $drushHelper->createAliases($project, $projectRoot, $environments);
             $shellHelper->execute('drush cache-clear drush');

@@ -18,7 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Console\Shell;
 
-class Application extends ConsoleApplication {
+class Application extends ConsoleApplication
+{
 
     protected $output;
 
@@ -68,16 +69,23 @@ class Application extends ConsoleApplication {
     protected function getDefaultInputDefinition()
     {
         // We remove the confusing `--ansi` and `--no-ansi` options.
-        return new InputDefinition(array(
+        return new InputDefinition(
+          [
             new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
             new InputOption('--help', '-h', InputOption::VALUE_NONE, 'Display this help message.'),
             new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message.'),
-            new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),
+            new InputOption(
+              '--verbose',
+              '-v|vv|vvv',
+              InputOption::VALUE_NONE,
+              'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'
+            ),
             new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version.'),
             new InputOption('--yes', '-y', InputOption::VALUE_NONE, 'Answer "yes" to all prompts.'),
             new InputOption('--no', '-n', InputOption::VALUE_NONE, 'Answer "no" to all prompts.'),
             new InputOption('--shell', '-s', InputOption::VALUE_NONE, 'Launch the shell.'),
-        ));
+          ]
+        );
     }
 
     /**
@@ -85,14 +93,13 @@ class Application extends ConsoleApplication {
      */
     protected function getDefaultHelperSet()
     {
-        return new HelperSet(array(
+        return new HelperSet(
+          [
             new FormatterHelper(),
             new TableHelper(),
             new PlatformQuestionHelper(),
-            new FilesystemHelper(),
-            new ShellHelper(),
-            new DrushHelper(),
-        ));
+          ]
+        );
     }
 
     /**
@@ -101,28 +108,31 @@ class Application extends ConsoleApplication {
     public function doRun(InputInterface $input, OutputInterface $output)
     {
         // Set the input to non-interactive if the yes or no options are used.
-        if ($input->hasParameterOption(array('--yes', '-y')) || $input->hasParameterOption(array('--no', '-n'))) {
+        if ($input->hasParameterOption(['--yes', '-y']) || $input->hasParameterOption(['--no', '-n'])) {
             $input->setInteractive(false);
-        }
-        // Enable the shell.
-        elseif ($input->hasParameterOption(array('--shell', '-s'))) {
+        } // Enable the shell.
+        elseif ($input->hasParameterOption(['--shell', '-s'])) {
             $shell = new Shell($this);
             $shell->run();
+
             return 0;
         }
 
         $this->output = $output;
+
         return parent::doRun($input, $output);
     }
 
     /**
      * @return OutputInterface
      */
-    public function getOutput() {
+    public function getOutput()
+    {
         if (isset($this->output)) {
             return $this->output;
         }
         $stream = fopen('php://stdout', 'w');
+
         return new StreamOutput($stream);
     }
 
@@ -133,7 +143,8 @@ class Application extends ConsoleApplication {
      * so it needs to be done manually.
      * UTC is the fallback in case autodetection fails.
      */
-    protected function setDefaultTimezone() {
+    protected function setDefaultTimezone()
+    {
         $timezone = 'UTC';
         if (is_link('/etc/localtime')) {
             // Mac OS X (and older Linuxes)
@@ -157,6 +168,6 @@ class Application extends ConsoleApplication {
         }
 
         date_default_timezone_set($timezone);
-     }
+    }
 
 }

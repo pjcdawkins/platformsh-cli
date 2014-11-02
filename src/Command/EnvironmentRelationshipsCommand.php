@@ -13,11 +13,14 @@ class EnvironmentRelationshipsCommand extends EnvironmentCommand
      */
     protected function configure()
     {
-        $this
-            ->setName('environment:relationships')
-            ->addOption('project', null, InputOption::VALUE_OPTIONAL, 'The project ID')
-            ->addOption('environment', null, InputOption::VALUE_OPTIONAL, 'The environment ID')
-            ->setDescription("List the environment's relationships.");
+        $this->setName('environment:relationships')->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption('environment', null, InputOption::VALUE_OPTIONAL, 'The environment ID')->setDescription(
+            "List the environment's relationships."
+          );
         // $this->ignoreValidationErrors(); @todo: Pass extra stuff to ssh? -i?
     }
 
@@ -39,7 +42,7 @@ class EnvironmentRelationshipsCommand extends EnvironmentCommand
                 $output->writeln("<comment>$key:$delta:</comment>");
                 foreach ((array) $object as $prop => $value) {
                     if (is_scalar($value)) {
-                        $propString = str_pad("$prop",10," ");
+                        $propString = str_pad("$prop", 10, " ");
                         $output->writeln("<info>  $propString: $value</info>");
                     }
                 }

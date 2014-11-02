@@ -11,21 +11,17 @@ class EnvironmentMergeCommand extends EnvironmentCommand
 
     protected function configure()
     {
-        $this
-            ->setName('environment:merge')
-            ->setDescription('Merge an environment.')
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            )
-            ->addOption(
-                'environment',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The environment ID'
-            );
+        $this->setName('environment:merge')->setDescription('Merge an environment.')->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption(
+            'environment',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The environment ID'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -37,13 +33,21 @@ class EnvironmentMergeCommand extends EnvironmentCommand
         $environmentId = $this->environment['id'];
 
         if (!$this->operationAllowed('merge')) {
-            $output->writeln("<error>Operation not permitted: The environment '$environmentId' can't be merged.</error>");
+            $output->writeln(
+              "<error>Operation not permitted: The environment '$environmentId' can't be merged.</error>"
+            );
+
             return 1;
         }
 
         $parentId = $this->environment['parent'];
 
-        if (!$this->confirm("Are you sure you want to merge <info>$environmentId</info> with its parent, <info>$parentId</info>? [Y/n] ", $input, $output)) {
+        if (!$this->confirm(
+          "Are you sure you want to merge <info>$environmentId</info> with its parent, <info>$parentId</info>? [Y/n] ",
+          $input,
+          $output
+        )
+        ) {
             return 0;
         }
 
@@ -53,6 +57,7 @@ class EnvironmentMergeCommand extends EnvironmentCommand
         $this->getEnvironments($this->project, true);
 
         $output->writeln("The environment <info>$environmentId</info> has been merged with <info>$parentId</info>.");
+
         return 0;
     }
 }

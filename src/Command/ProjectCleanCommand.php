@@ -11,20 +11,17 @@ class ProjectCleanCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('project:clean')
-            ->setAliases(array('clean'))
-            ->setDescription('Remove project builds.')
-            ->addOption(
-                'keep',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Number of builds to keep.',
-                5
-            );
+        $this->setName('project:clean')->setAliases(['clean'])->setDescription('Remove project builds.')->addOption(
+            'number',
+            'c',
+            InputOption::VALUE_OPTIONAL,
+            'Number of builds to keep.',
+            5
+          );
     }
 
-    public function isLocal() {
+    public function isLocal()
+    {
         return true;
     }
 
@@ -33,13 +30,19 @@ class ProjectCleanCommand extends PlatformCommand
         $projectRoot = $this->getProjectRoot();
         if (empty($projectRoot)) {
             $output->writeln("<error>You must run this command from a project folder.</error>");
+
             return;
         }
 
         $buildsDir = $projectRoot . '/builds';
+        if ($this->dir_empty($buildsDir)) {
+            $output->writeln("<error>There are no builds to clean.</error>");
+
+            return;
+        }
 
         // Collect directories.
-        $builds = array();
+        $builds = [];
         $handle = opendir($buildsDir);
         while ($entry = readdir($handle)) {
             if (strpos($entry, '.') !== 0) {
@@ -74,9 +77,24 @@ class ProjectCleanCommand extends PlatformCommand
             $output->writeln("Deleted <info>$numDeleted</info> build(s).");
         }
 
-        if ($numKept) {
-            $output->writeln("Kept <info>$numKept</info> build(s).");
+    /**
+     * Check if directory contains files.
+     *
+     * @return boolean False if there are no files in directory.
+     */
+    private function dir_empty($dir)
+    {
+        if (!is_readable($dir)) {
+            return true;
         }
+        $handle = opendir($dir);
+        while (false !== ($entry = readdir($handle))) {
+            if ($entry != "." && $entry != "..") {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

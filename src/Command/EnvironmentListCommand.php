@@ -20,34 +20,28 @@ class EnvironmentListCommand extends EnvironmentCommand
      */
     protected function configure()
     {
-        $this
-            ->setName('environments')
-            ->setDescription('Get a list of all environments.')
-            ->addOption(
-                'project',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'The project ID'
-            )
-            ->addOption(
-                'pipe',
-                null,
-                InputOption::VALUE_NONE,
-                'Output a simple list of environment IDs.'
-            )
-            ->addOption(
-                'show',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                "Specify information to show about the environment: 'name', 'status', 'url', or 'all'.",
-                'name'
-            )
-            ->addOption(
-                'refresh',
-                null,
-                InputOption::VALUE_NONE,
-                'Refresh the list.'
-            );
+        $this->setName('environments')->setDescription('Get a list of all environments.')->addOption(
+            'project',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The project ID'
+          )->addOption(
+            'pipe',
+            null,
+            InputOption::VALUE_NONE,
+            'Output a simple list of environment IDs.'
+          )->addOption(
+            'show',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            "Specify information to show about the environment: 'name', 'status', 'url', or 'all'.",
+            'name'
+          )->addOption(
+            'refresh',
+            null,
+            InputOption::VALUE_NONE,
+            'Refresh the list.'
+          );
     }
 
     /**
@@ -55,13 +49,14 @@ class EnvironmentListCommand extends EnvironmentCommand
      */
     protected function buildEnvironmentTree($environments, $parent = null)
     {
-        $children = array();
+        $children = [];
         foreach ($environments as $environment) {
             if ($environment['parent'] === $parent) {
                 $environment['children'] = $this->buildEnvironmentTree($environments, $environment['id']);
                 $children[$environment['id']] = $environment;
             }
         }
+
         return $children;
     }
 
@@ -70,7 +65,7 @@ class EnvironmentListCommand extends EnvironmentCommand
      */
     protected function buildEnvironmentTable($tree)
     {
-        $headers = array('ID');
+        $headers = ['ID'];
         if ($this->showNames) {
             $headers[] = 'Name';
         }
@@ -81,9 +76,7 @@ class EnvironmentListCommand extends EnvironmentCommand
             $headers[] = 'URL';
         }
         $table = $this->getHelper('table');
-        $table
-            ->setHeaders($headers)
-            ->setRows($this->buildEnvironmentRows($tree));
+        $table->setHeaders($headers)->setRows($this->buildEnvironmentRows($tree));
 
         return $table;
     }
@@ -93,9 +86,9 @@ class EnvironmentListCommand extends EnvironmentCommand
      */
     protected function buildEnvironmentRows($tree, $indent = 0)
     {
-        $rows = array();
+        $rows = [];
         foreach ($tree as $environment) {
-            $row = array();
+            $row = [];
 
             $id = str_repeat('   ', $indent) . $environment['id'];
             if ($environment['id'] == $this->currentEnvironment['id']) {
@@ -124,6 +117,7 @@ class EnvironmentListCommand extends EnvironmentCommand
             $rows[] = $row;
             $rows = array_merge($rows, $this->buildEnvironmentRows($environment['children'], $indent + 1));
         }
+
         return $rows;
     }
 
@@ -142,20 +136,22 @@ class EnvironmentListCommand extends EnvironmentCommand
             $this->showUrls = true;
             $this->showNames = true;
             $this->showStatus = true;
-        }
-        elseif ($show) {
+        } elseif ($show) {
             $this->showUrls = in_array('url', $show);
             $this->showNames = in_array('name', $show);
             $this->showStatus = in_array('status', $show);
         }
 
-        $refresh = $input->hasOption('refresh') && $input->getOption('refresh');
+        $refresh = $input->getFirstArgument() == 'welcome' || ($input->hasOption('refresh') && $input->getOption(
+              'refresh'
+            ));
 
         $environments = $this->getEnvironments($this->project, $refresh);
 
         if ($input->getOption('pipe')) {
-          $output->writeln(array_keys($environments));
-          return;
+            $output->writeln(array_keys($environments));
+
+            return;
         }
 
         $this->currentEnvironment = $this->getCurrentEnvironment($this->project);
@@ -166,7 +162,7 @@ class EnvironmentListCommand extends EnvironmentCommand
         // to the top level.
         if (isset($tree['master'])) {
             $tree += $tree['master']['children'];
-            $tree['master']['children'] = array();
+            $tree['master']['children'] = [];
         }
 
         $output->writeln("Your environments are: ");
@@ -177,13 +173,17 @@ class EnvironmentListCommand extends EnvironmentCommand
 
         $output->writeln("Check out a different environment by running <info>platform checkout [id]</info>.");
         if ($this->operationAllowed('branch', $this->currentEnvironment)) {
-            $output->writeln("Branch a new environment by running <info>platform environment:branch [new-name]</info>.");
+            $output->writeln(
+              "Branch a new environment by running <info>platform environment:branch [new-name]</info>."
+            );
         }
         if ($this->operationAllowed('activate', $this->currentEnvironment)) {
             $output->writeln("Activate the current environment by running <info>platform environment:activate</info>.");
         }
         if ($this->operationAllowed('deactivate', $this->currentEnvironment)) {
-            $output->writeln("Deactivate the current environment by running <info>platform environment:deactivate</info>.");
+            $output->writeln(
+              "Deactivate the current environment by running <info>platform environment:deactivate</info>."
+            );
         }
         if ($this->operationAllowed('delete', $this->currentEnvironment)) {
             $output->writeln("Delete the current environment by running <info>platform environment:delete</info>.");
@@ -197,11 +197,10 @@ class EnvironmentListCommand extends EnvironmentCommand
         if ($this->operationAllowed('synchronize', $this->currentEnvironment)) {
             $output->writeln("Sync the current environment by running <info>platform environment:synchronize</info>.");
         }
-
-        if ($this->getApplication()->find('drush')->isEnabled()) {
-            $output->writeln(
-              "Execute Drush commands against the current environment by running <info>platform drush</info>."
-            );
-        }
+        $output->writeln(
+          "Execute drush commands against the current environment by running <info>platform drush</info>."
+        );
+        // Output a newline after the current block of commands.
+        $output->writeln("");
     }
 }

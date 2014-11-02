@@ -26,11 +26,11 @@ class PlatformQuestionHelper extends QuestionHelper
             $no = $input->hasOption('no') && $input->getOption('no');
             if ($yes && !$no) {
                 return true;
-            }
-            elseif ($no && !$yes) {
+            } elseif ($no && !$yes) {
                 return false;
             }
         }
+
         return parent::ask($input, $output, $question);
     }
 }

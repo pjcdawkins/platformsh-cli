@@ -11,14 +11,11 @@ class SshKeyDeleteCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('ssh-key:delete')
-            ->setDescription('Delete an SSH key.')
-            ->addArgument(
-                'id',
-                InputArgument::OPTIONAL,
-                'The ID of the SSH key to delete'
-            );
+        $this->setName('ssh-key:delete')->setDescription('Delete an SSH key.')->addArgument(
+            'id',
+            InputArgument::OPTIONAL,
+            'The ID of the SSH key to delete'
+          );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -26,10 +23,11 @@ class SshKeyDeleteCommand extends PlatformCommand
         $id = $input->getArgument('id');
         if (empty($id)) {
             $output->writeln("<error>You must specify the ID of the key to delete.</error>");
+
             return;
         }
         $client = $this->getAccountClient();
-        $client->deleteSshKey(array('id' => $id));
+        $client->deleteSshKey(['id' => $id]);
 
         $message = '<info>';
         $message .= "\nThe SSH key #$id has been deleted. \n";

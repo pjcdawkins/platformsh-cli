@@ -13,9 +13,7 @@ class PlatformLoginCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('login')
-            ->setDescription('Log in to Platform.sh');
+        $this->setName('login')->setDescription('Log in to Platform.sh');
     }
 
     public function isLocal()
@@ -56,14 +54,17 @@ class PlatformLoginCommand extends PlatformCommand
         $helper = $this->getHelper('question');
 
         $question = new Question('Your email address: ');
-        $question->setValidator(function ($answer) {
-            if (empty($answer) || !filter_var($answer, FILTER_VALIDATE_EMAIL)) {
-              throw new \RunTimeException(
-                'Please provide a valid email address.'
-              );
-            }
-            return $answer;
-        });
+        $question->setValidator(
+          function ($answer) {
+              if (empty($answer) || !filter_var($answer, FILTER_VALIDATE_EMAIL)) {
+                  throw new \RunTimeException(
+                    'Please provide a valid email address.'
+                  );
+              }
+
+              return $answer;
+          }
+        );
         $question->setMaxAttempts(5);
         $email = $helper->ask($input, $output, $question);
 
@@ -77,6 +78,7 @@ class PlatformLoginCommand extends PlatformCommand
             } else {
                 // Start from the beginning.
                 $this->configureAccount($input, $output);
+
                 return;
             }
         }
@@ -96,12 +98,15 @@ class PlatformLoginCommand extends PlatformCommand
         }
 
         $question = new Question('Your password: ');
-        $question->setValidator(function ($answer) {
-            if (trim($answer) == '') {
-                throw new \RuntimeException('The password cannot be empty');
-            }
-            return $answer;
-        });
+        $question->setValidator(
+          function ($answer) {
+              if (trim($answer) == '') {
+                  throw new \RuntimeException('The password cannot be empty');
+              }
+
+              return $answer;
+          }
+        );
         $question->setHidden(true);
         $question->setMaxAttempts(5);
         $password = $helper->ask($input, $output, $question);

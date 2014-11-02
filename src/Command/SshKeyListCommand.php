@@ -10,19 +10,16 @@ class SshKeyListCommand extends PlatformCommand
 
     protected function configure()
     {
-        $this
-            ->setName('ssh-keys')
-            ->setDescription('Get a list of all added SSH keys.');
-        ;
+        $this->setName('ssh-keys')->setDescription('Get a list of all added SSH keys.');;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $client = $this->getAccountClient();
         $data = $client->getSshKeys();
-        $key_rows = array();
+        $key_rows = [];
         foreach ($data['keys'] as $key) {
-            $key_row = array();
+            $key_row = [];
             $key_row[] = $key['id'];
             $key_row[] = $key['title'] . ' (' . $key['fingerprint'] . ')';
             $key_rows[] = $key_row;
@@ -30,9 +27,7 @@ class SshKeyListCommand extends PlatformCommand
 
         $output->writeln("\nYour SSH keys are: ");
         $table = $this->getHelperSet()->get('table');
-        $table
-            ->setHeaders(array('ID', 'Key'))
-            ->setRows($key_rows);
+        $table->setHeaders(['ID', 'Key'])->setRows($key_rows);
         $table->render($output);
 
         $output->writeln("\nAdd a new SSH key by running <info>platform ssh-key:add [path]</info>.");
