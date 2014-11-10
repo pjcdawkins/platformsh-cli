@@ -32,8 +32,11 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
 
         $branch = $input->getArgument('id');
         if (empty($branch) && $input->isInteractive()) {
-            $currentEnvironment = $this->getCurrentEnvironment($project);
             $environments = $this->getEnvironments($project);
+            $currentEnvironment = $this->getCurrentEnvironment($project);
+            if ($currentEnvironment) {
+                $output->writeln("The current environment is <info>{$currentEnvironment['id']}</info>.");
+            }
             $environmentList = array();
             foreach ($environments as $environment) {
                 if ($currentEnvironment && $environment['id'] == $currentEnvironment['id']) {
@@ -41,11 +44,11 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
                 }
                 $environmentList[] = $environment['id'];
             }
-            $chooseEnvironmentText = '';
-            if ($currentEnvironment) {
-                $chooseEnvironmentText = "The current environment is <info>{$currentEnvironment['id']}</info>.\n\n";
+            if (!count($environmentList)) {
+                $output->writeln("Use <info>platform branch</info> to create an environment.");
+                return 1;
             }
-            $chooseEnvironmentText .= "Enter a number to check out another environment:";
+            $chooseEnvironmentText = "Enter a number to check out another environment:";
             $helper = $this->getHelper('question');
             $question = new ChoiceQuestion($chooseEnvironmentText, $environmentList);
             $question->setMaxAttempts(5);
@@ -63,7 +66,8 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
 
         chdir($projectRoot . '/repository');
 
-        $existsLocal = $this->shellExec("git show-ref refs/heads/$machineName");
+        $shellHelper = $this->getHelper('shell');
+        $existsLocal = $shellHelper->execute("git show-ref refs/heads/$machineName");
 
         // If the branch doesn't already exist locally, check whether it is a
         // Platform.sh environment.
@@ -74,7 +78,7 @@ class EnvironmentCheckoutCommand extends EnvironmentCommand
             }
             // Fetch from origin.
             // @todo don't assume that the Platform.sh remote is called 'origin'
-            passthru('git fetch origin');
+            $shellHelper->execute('git fetch origin');
         }
 
         // Check out the branch.
