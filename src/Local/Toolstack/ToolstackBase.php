@@ -1,8 +1,8 @@
 <?php
 
-namespace CommerceGuys\Platform\Cli\Local\Toolstack;
+namespace Platformsh\Cli\Local\Toolstack;
 
-use CommerceGuys\Platform\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Helper\FilesystemHelper;
 
 abstract class ToolstackBase implements ToolstackInterface
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace CommerceGuys\Platform\Cli\Helper;
+namespace Platformsh\Cli\Helper;
 
-use CommerceGuys\Platform\Cli\Local\Toolstack\Drupal;
+use Platformsh\Cli\Local\Toolstack\Drupal;
 use Symfony\Component\Console\Helper\Helper;
 
 class DrushHelper extends Helper {

@@ -1,7 +1,7 @@
 <?php
-namespace CommerceGuys\Platform\Cli\Local;
+namespace Platformsh\Cli\Local;
 
-use CommerceGuys\Platform\Cli\Local\Toolstack\ToolstackInterface;
+use Platformsh\Cli\Local\Toolstack\ToolstackInterface;
 use Symfony\Component\Yaml\Parser;
 
 class LocalBuild {

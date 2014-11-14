@@ -1,8 +1,8 @@
 <?php
 
-namespace CommerceGuys\Platform\Cli\Tests;
+namespace Platformsh\Cli\Tests;
 
-use CommerceGuys\Platform\Cli\Local\LocalBuild;
+use Platformsh\Cli\Local\LocalBuild;
 
 class LocalBuildTest extends \PHPUnit_Framework_TestCase
 {

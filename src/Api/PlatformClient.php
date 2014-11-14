@@ -1,6 +1,6 @@
 <?php
 
-namespace CommerceGuys\Platform\Cli\Api;
+namespace Platformsh\Cli\Api;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Guzzle\Service\Client;

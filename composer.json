@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "CommerceGuys\\Platform\\Cli\\": "src"
+            "Platformsh\\Cli\\": "src"
         }
     },
     "require-dev": {

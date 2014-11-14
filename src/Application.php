@@ -1,11 +1,11 @@
 <?php
 
-namespace CommerceGuys\Platform\Cli;
+namespace Platformsh\Cli;
 
-use CommerceGuys\Platform\Cli\Helper\DrushHelper;
-use CommerceGuys\Platform\Cli\Helper\FilesystemHelper;
-use CommerceGuys\Platform\Cli\Helper\PlatformQuestionHelper;
-use CommerceGuys\Platform\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Helper\DrushHelper;
+use Platformsh\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Helper\PlatformQuestionHelper;
+use Platformsh\Cli\Helper\ShellHelper;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
