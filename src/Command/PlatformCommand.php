@@ -172,7 +172,7 @@ class PlatformCommand extends Command
      *
      * @return Client
      */
-    protected function getPlatformClient($baseUrl)
+    public function getPlatformClient($baseUrl)
     {
         if (!$this->platformClient) {
             $description = ServiceDescription::factory(CLI_ROOT . '/services/platform.php');

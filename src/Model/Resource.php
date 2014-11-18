@@ -113,11 +113,13 @@ class Resource implements ResourceInterface
         if (!is_array($collection)) {
             throw new \UnexpectedValueException("Unexpected response");
         }
-        foreach ($collection as &$resource) {
-            $resource = new Resource($resource);
+        $results = array();
+        foreach ($collection as $item) {
+            $resource = new Resource($item);
             $resource->setClient($this->client);
+            $results[$resource->getId()] = $resource;
         }
-        return $collection;
+        return $results;
     }
 
     /**

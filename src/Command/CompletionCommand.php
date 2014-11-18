@@ -2,6 +2,7 @@
 
 namespace CommerceGuys\Platform\Cli\Command;
 
+use CommerceGuys\Platform\Cli\Model\Environment;
 use Stecman\Component\Symfony\Console\BashCompletion\Completion;
 use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand as ParentCompletionCommand;
 
@@ -65,6 +66,12 @@ class CompletionCommand extends ParentCompletionCommand
               'id',
               Completion::TYPE_ARGUMENT,
               array($this, 'getEnvironmentsforCheckout')
+            ),
+            new Completion(
+              'variable:get',
+              'name',
+              Completion::TYPE_ARGUMENT,
+              array($this, 'getVariables')
             )
           )
         );
@@ -151,6 +158,44 @@ class CompletionCommand extends ParentCompletionCommand
     }
 
     /**
+     * Get a list of variable IDs.
+     *
+     * The project and environment are determined from the current path or the
+     * rest of the command.
+     *
+     * @return string[]
+     */
+    public function getVariables()
+    {
+        if (!$this->projects) {
+            return array();
+        }
+        $commandLine = $this->handler->getContext()->getCommandLine();
+        $currentProjectId = $this->getProjectIdFromCommandLine($commandLine);
+        if (!$currentProjectId && ($currentProject = $this->platformCommand->getCurrentProject())) {
+            $project = $currentProject;
+        }
+        elseif (isset($this->projects[$currentProjectId])) {
+            $project = $this->projects[$currentProjectId];
+        }
+        else {
+            return array();
+        }
+        $environmentId = $this->getEnvironmentIdFromCommandLine($commandLine);
+        if (
+            ($environmentId && ($currentEnv = $this->platformCommand->getEnvironment($environmentId, $project)))
+              || ($currentEnv = $this->platformCommand->getCurrentEnvironment($project))
+          ) {
+            $environment = new Environment($currentEnv);
+            $environment->setClient($this->platformCommand->getPlatformClient($currentEnv['endpoint']));
+        }
+        else {
+            return array();
+        }
+        return array_keys($environment->getVariables());
+    }
+
+    /**
      * Get the project ID the user has already entered on the command line.
      *
      * @param string $commandLine
@@ -160,6 +205,21 @@ class CompletionCommand extends ParentCompletionCommand
     protected function getProjectIdFromCommandLine($commandLine)
     {
         if (preg_match('/\W(\-\-project|get) ?=? ?[\'"]?([0-9a-z]+)[\'"]?/', $commandLine, $matches)) {
+            return $matches[2];
+        }
+        return false;
+    }
+
+    /**
+     * Get the environment ID the user has already entered on the command line.
+     *
+     * @param string $commandLine
+     *
+     * @return string|false
+     */
+    protected function getEnvironmentIdFromCommandLine($commandLine)
+    {
+        if (preg_match('/\W(\-\-environment) ?=? ?[\'"]?([0-9a-z\-]+)[\'"]?/', $commandLine, $matches)) {
             return $matches[2];
         }
         return false;
