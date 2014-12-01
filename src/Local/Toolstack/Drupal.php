@@ -166,10 +166,8 @@ class Drupal extends ToolstackBase
         else {
             $this->output->writeln("Building in vanilla mode: you are missing out!");
             $this->buildMode = 'vanilla';
-            $this->buildDir = $this->appRoot;
+            $this->fsHelper->symlinkAll($this->appRoot, $buildDir, true);
         }
-
-        return true;
     }
 
     public function install()

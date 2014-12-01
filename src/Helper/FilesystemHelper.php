@@ -137,7 +137,7 @@ class FilesystemHelper extends Helper {
 
         // The symlink won't work if $source is a relative path.
         $source = realpath($source);
-        $skip = array('.', '..');
+        $skip = array('.', '..', '.git');
 
         // Go through the blacklist, adding files to $skip.
         foreach ($blacklist as $pattern) {

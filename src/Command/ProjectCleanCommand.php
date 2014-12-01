@@ -2,6 +2,7 @@
 
 namespace CommerceGuys\Platform\Cli\Command;
 
+use CommerceGuys\Platform\Cli\Local\LocalBuild;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -36,47 +37,8 @@ class ProjectCleanCommand extends PlatformCommand
             return;
         }
 
-        $buildsDir = $projectRoot . '/builds';
-
-        // Collect directories.
-        $builds = array();
-        $handle = opendir($buildsDir);
-        while ($entry = readdir($handle)) {
-            if (strpos($entry, '.') !== 0) {
-                $builds[] = $entry;
-            }
-        }
-
-        $count = count($builds);
-
-        if (!$count) {
-            $output->writeln("There are no builds to delete.");
-            return;
-        }
-
-        // Remove old builds.
-        sort($builds);
-        $numDeleted = 0;
-        $numKept = 0;
-        $keep = (int) $input->getOption('keep');
-        foreach ($builds as $build) {
-            if ($count - $numDeleted > $keep) {
-                $output->writeln("Deleting: $build");
-                $this->getHelper('fs')->rmdir($projectRoot . '/builds/' . $build);
-                $numDeleted++;
-            }
-            else {
-                $numKept++;
-            }
-        }
-
-        if ($numDeleted) {
-            $output->writeln("Deleted <info>$numDeleted</info> build(s).");
-        }
-
-        if ($numKept) {
-            $output->writeln("Kept <info>$numKept</info> build(s).");
-        }
+        $builder = new LocalBuild(array());
+        $builder->clean($projectRoot, $input->getOption('keep'), $output);
     }
 
 }

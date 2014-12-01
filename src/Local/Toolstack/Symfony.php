@@ -39,8 +39,6 @@ class Symfony extends ToolstackBase
         else {
           throw new \Exception("Couldn't create build directory");
         }
-
-        return true;
     }
 
     public function install() {

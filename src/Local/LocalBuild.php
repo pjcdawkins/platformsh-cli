@@ -1,13 +1,23 @@
 <?php
 namespace CommerceGuys\Platform\Cli\Local;
 
+use CommerceGuys\Platform\Cli\Helper\GitHelper;
+use CommerceGuys\Platform\Cli\Helper\ShellHelper;
+use CommerceGuys\Platform\Cli\Helper\ShellHelperInterface;
 use CommerceGuys\Platform\Cli\Local\Toolstack\ToolstackInterface;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Parser;
 
-class LocalBuild {
+class LocalBuild
+{
 
     protected $settings;
+
+    /** @var ShellHelperInterface */
+    protected $shellHelper;
 
     /**
      * @return ToolstackInterface[]
@@ -15,22 +25,24 @@ class LocalBuild {
     public function getToolstacks()
     {
         return array(
-            new Toolstack\Drupal(),
-            new Toolstack\Symfony(),
+          new Toolstack\Drupal(),
+          new Toolstack\Symfony(),
         );
     }
 
     /**
-     * @param array $settings
+     * @param array                $settings
      */
     public function __construct(array $settings = array())
     {
         $this->settings = $settings;
+        $this->shellHelper = new ShellHelper();
     }
 
     /**
-     * @param string $projectRoot
+     * @param string          $projectRoot
      * @param OutputInterface $output
+     *
      * @return bool
      */
     public function buildProject($projectRoot, OutputInterface $output)
@@ -40,13 +52,14 @@ class LocalBuild {
         foreach ($this->getApplications($repositoryRoot) as $appRoot) {
             $success = $this->buildApp($appRoot, $projectRoot, $output) && $success;
         }
+
         return $success;
     }
 
     /**
      * Get a list of applications in the repository.
      *
-     * @param string $repositoryRoot   The absolute path to the repository.
+     * @param string $repositoryRoot The absolute path to the repository.
      *
      * @return string[]    A list of directories containing applications.
      */
@@ -59,24 +72,32 @@ class LocalBuild {
     /**
      * Get the application's configuration, parsed from its YAML definition.
      *
-     * @param string $appRoot   The absolute path to the application.
+     * @param string $appRoot The absolute path to the application.
      *
      * @return array
      */
     public function getAppConfig($appRoot)
     {
+        $config = array();
         if (file_exists($appRoot . '/.platform.app.yaml')) {
             $parser = new Parser();
-            return (array) $parser->parse(file_get_contents($appRoot . '/.platform.app.yaml'));
+            $config = (array) $parser->parse(file_get_contents($appRoot . '/.platform.app.yaml'));
         }
-        return array();
+        if (!isset($config['name'])) {
+            $dir = basename(dirname($appRoot));
+            if ($dir != 'repository') {
+                $config['name'] = $dir;
+            }
+        }
+
+        return $config;
     }
 
     /**
      * Get the toolstack for a particular application.
      *
      * @param string $appRoot   The absolute path to the application.
-     * @param mixed $appConfig  The application's configuration.
+     * @param mixed  $appConfig The application's configuration.
      *
      * @throws \Exception   If a specified toolstack is not found.
      *
@@ -113,41 +134,73 @@ class LocalBuild {
 
     /**
      * @param string $appRoot
-     * @param string $projectRoot
+     *
+     * @return string|false
+     */
+    protected function getTreeId($appRoot)
+    {
+        $helper = new GitHelper();
+        $untracked = $helper->execute(array('ls-files', '--others', '--exclude-standard', '-z'), $appRoot);
+        if (is_string($untracked) && !empty($untracked)) {
+            return false;
+        }
+        $tree = $helper->execute(array('ls-tree', 'HEAD', '.'), $appRoot, true);
+        $tree = preg_replace('#^|\n[^\n]+?\.platform\n|$#', "\n", $tree);
+        return sha1($tree);
+    }
+
+    /**
+     * @param string          $appRoot
+     * @param string          $projectRoot
      * @param OutputInterface $output
      *
      * @return bool
      */
     protected function buildApp($appRoot, $projectRoot, OutputInterface $output)
     {
-        $repositoryRoot = $this->getRepositoryRoot($projectRoot);
-
         $appConfig = $this->getAppConfig($appRoot);
-        $appName = false;
-        if (isset($appConfig['name'])) {
-            $appName = $appConfig['name'];
-        }
-        elseif ($appRoot != $repositoryRoot) {
-            $appName = str_replace($repositoryRoot, '', $appRoot);
-        }
+
+        $appName = isset($appConfig['name']) ? $appConfig['name'] : false;
+
+        $buildName = date('Y-m-d--H-i-s') . '--' . $this->settings['environmentId'];
+        $buildDir = $projectRoot . '/builds/' . $buildName;
 
         $toolstack = $this->getToolstack($appRoot, $appConfig);
         if (!$toolstack) {
             $output->writeln("<comment>Could not detect toolstack for directory: $appRoot</comment>");
+
             return false;
         }
 
-        $message = "Building application";
-        if ($appName) {
-            $message .= " <info>$appName</info>";
+        $toolstack->prepare($buildDir, $appRoot, $projectRoot, $this->settings);
+
+        $archive = false;
+        $treeId = $this->getTreeId($appRoot);
+        if ($treeId) {
+            $archive = $projectRoot . '/.build-archives/' . $treeId . '.tar.gz';
         }
-        $message .= " using the toolstack <info>" . $toolstack->getKey() . "</info>";
-        $output->writeln($message);
 
-        $toolstack->setOutput($output);
-        $toolstack->prepareBuild($appRoot, $projectRoot, $this->settings);
+        if ($archive && file_exists($archive)) {
+            $output->writeln("Extracting previously built archive");
+            $this->extractBuild($archive, $buildDir);
+        } else {
+            $message = "Building application";
+            if ($appName) {
+                $message .= " <info>$appName</info>";
+            }
+            $message .= " using the toolstack <info>" . $toolstack->getKey() . "</info>";
+            $output->writeln($message);
 
-        $toolstack->build();
+            $toolstack->setOutput($output);
+
+            $toolstack->build();
+
+            if ($archive) {
+                $this->archiveBuild($buildDir, $archive);
+            }
+        }
+
+        $output->writeln("Installing");
         $toolstack->install();
 
         $this->warnAboutHooks($appConfig, $output);
@@ -157,13 +210,14 @@ class LocalBuild {
             $message .= " for <info>$appName</info>";
         }
         $output->writeln($message);
+
         return true;
     }
 
     /**
      * Warn the user that the CLI will not run build/deploy hooks.
      *
-     * @param array $appConfig
+     * @param array           $appConfig
      * @param OutputInterface $output
      *
      * @return bool
@@ -185,7 +239,94 @@ class LocalBuild {
             $withIndent = $indent . str_replace("\n", "\n$indent", $asString);
             $output->writeln($withIndent);
         }
+
         return true;
     }
 
+    protected function deleteArchives($projectRoot)
+    {
+        $fs = new Filesystem();
+        try {
+            $fs->remove($projectRoot . '/.build-archives');
+        }
+        catch (IOException $e) {
+            return false;
+        }
+        return true;
+    }
+
+    public function clean($projectRoot, $keep = 3, OutputInterface $output = null)
+    {
+        $output = $output ?: new NullOutput();
+        $buildsDir = $projectRoot . '/builds';
+
+        // Collect directories.
+        $builds = array();
+        $handle = opendir($buildsDir);
+        while ($entry = readdir($handle)) {
+            if (strpos($entry, '.') !== 0) {
+                $builds[] = $buildsDir . '/' . $entry;
+            }
+        }
+
+        $count = count($builds);
+
+        if (!$count) {
+            $output->writeln("There are no builds to delete.");
+            return;
+        }
+
+        // Remove old builds.
+        sort($builds);
+        $numDeleted = 0;
+        $numKept = 0;
+        $fs = new Filesystem();
+        foreach ($builds as $build) {
+            if ($count - $numDeleted > $keep) {
+                $output->writeln("Deleting: $build");
+                $fs->remove($build);
+                $numDeleted++;
+            }
+            else {
+                $numKept++;
+            }
+        }
+
+        $output->writeln("Deleting archives");
+        $this->deleteArchives($projectRoot);
+
+        if ($numDeleted) {
+            $output->writeln("Deleted <info>$numDeleted</info> build(s).");
+        }
+
+        if ($numKept) {
+            $output->writeln("Kept <info>$numKept</info> build(s).");
+        }
+    }
+
+    protected function archiveBuild($buildDir, $destination)
+    {
+        if (!file_exists($buildDir)) {
+            throw new \RuntimeException("Build incomplete");
+        }
+        if (!is_dir(dirname($destination))) {
+            mkdir(dirname($destination), 0755, true);
+        }
+        return (bool) $this->shellHelper
+          ->execute(array('tar', '-czp', '-C' . $buildDir, '-f' . $destination, '.'), null, true);
+    }
+
+    protected function extractBuild($archive, $destination)
+    {
+        if (!file_exists($archive)) {
+            throw new \InvalidArgumentException("Archive not found: $archive");
+        }
+        if (!is_writable(dirname($destination))) {
+            throw new \InvalidArgumentException("Cannot extract archive to: $destination");
+        }
+        mkdir($destination);
+
+        return (bool) $this->shellHelper
+          ->execute(array('tar', '-xzp', '-C' . $destination, '-f' . $archive), null, true);
+    }
 }
