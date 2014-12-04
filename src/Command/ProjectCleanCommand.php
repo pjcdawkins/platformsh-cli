@@ -38,7 +38,24 @@ class ProjectCleanCommand extends PlatformCommand
         }
 
         $builder = new LocalBuild(array());
-        $builder->clean($projectRoot, $input->getOption('keep'), $output);
+        $result = $builder->clean($projectRoot, $input->getOption('keep'), $output);
+
+        if (!$result[0]) {
+            $output->writeln("There are no builds to delete");
+        }
+        else {
+            if ($result[1]) {
+                $output->writeln("Deleted <info>{$result[1]}</info> build(s)");
+            }
+            if ($result[2]) {
+                $output->writeln("Kept <info>{$result[2]}</info> build(s)");
+            }
+        }
+
+        $archivesResult = $builder->cleanArchives($projectRoot);
+        if ($archivesResult[1]) {
+            $output->writeln("Deleted <info>{$archivesResult[1]}</info> archive(s)");
+        }
     }
 
 }

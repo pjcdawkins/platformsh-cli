@@ -21,7 +21,12 @@ class ProjectBuildCommand extends PlatformCommand
                 'abslinks',
                 'a',
                 InputOption::VALUE_NONE,
-                'Use absolute links.'
+                'Use absolute links'
+            )->addOption(
+                'no-clean',
+                null,
+                InputOption::VALUE_NONE,
+                'Do not remove old builds'
             );
         $projectRoot = $this->getProjectRoot();
         if (!$projectRoot || Drupal::isDrupal($projectRoot . '/repository')) {
@@ -90,6 +95,7 @@ class ProjectBuildCommand extends PlatformCommand
           'absoluteLinks' => 'abslinks',
           'drushWorkingCopy' => 'working-copy',
           'noCache' => 'no-cache',
+          'noClean' => 'no-clean',
         );
         foreach ($settingsMap as $setting => $option) {
             $settings[$setting] = $input->hasOption($option) && $input->getOption($option);

@@ -52,7 +52,11 @@ class LocalBuild
         foreach ($this->getApplications($repositoryRoot) as $appRoot) {
             $success = $this->buildApp($appRoot, $projectRoot, $output) && $success;
         }
-
+        if (empty($this->settings['noClean'])) {
+            $output->writeln("Cleaning up...");
+            $this->clean($projectRoot, 3);
+            $this->cleanArchives($projectRoot);
+        }
         return $success;
     }
 
@@ -159,6 +163,7 @@ class LocalBuild
     protected function buildApp($appRoot, $projectRoot, OutputInterface $output)
     {
         $appConfig = $this->getAppConfig($appRoot);
+        $verbose = $output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE;
 
         $appName = isset($appConfig['name']) ? $appConfig['name'] : false;
 
@@ -177,11 +182,19 @@ class LocalBuild
         $archive = false;
         $treeId = $this->getTreeId($appRoot);
         if ($treeId) {
+            if ($verbose) {
+                $output->writeln("Tree ID: $treeId");
+            }
             $archive = $projectRoot . '/.build-archives/' . $treeId . '.tar.gz';
         }
 
         if ($archive && file_exists($archive)) {
-            $output->writeln("Extracting previously built archive");
+            $message = "Extracting archive";
+            if ($appName) {
+                $message .= " for application <info>$appName</info>";
+            }
+            $message .= '...';
+            $output->writeln($message);
             $this->extractBuild($archive, $buildDir);
         } else {
             $message = "Building application";
@@ -196,12 +209,18 @@ class LocalBuild
             $toolstack->build();
 
             if ($archive) {
+                if ($verbose) {
+                    $output->writeln("Saving archive to: $archive");
+                }
                 $this->archiveBuild($buildDir, $archive);
             }
         }
 
-        $output->writeln("Installing");
-        $toolstack->install();
+        $docRoot = $projectRoot . '/www';
+        if ($verbose) {
+            $output->writeln("Installing...");
+        }
+        $toolstack->install($docRoot);
 
         $this->warnAboutHooks($appConfig, $output);
 
@@ -210,6 +229,10 @@ class LocalBuild
             $message .= " for <info>$appName</info>";
         }
         $output->writeln($message);
+
+        if ($verbose) {
+            $output->writeln("The application has been symlinked to: $docRoot");
+        }
 
         return true;
     }
@@ -224,7 +247,7 @@ class LocalBuild
      */
     protected function warnAboutHooks(array $appConfig, OutputInterface $output)
     {
-        if (empty($appConfig['hooks'])) {
+        if (empty($appConfig['hooks']['build'])) {
             return false;
         }
         $indent = '        ';
@@ -243,19 +266,38 @@ class LocalBuild
         return true;
     }
 
-    protected function deleteArchives($projectRoot)
+    public function cleanArchives($projectRoot, $ttl = 604800)
     {
+        $dir = $projectRoot . '/.build-archives';
         $fs = new Filesystem();
+        $handle = opendir($dir);
+        $now = time();
+        $num = 0;
+        $numDeleted = 0;
+        $numKept = 0;
         try {
-            $fs->remove($projectRoot . '/.build-archives');
+            while ($entry = readdir($handle)) {
+                if ($entry[0] == '.') {
+                    continue;
+                }
+                $num++;
+                $filename = $dir . '/' . $entry;
+                if ($now - filemtime($filename) > $ttl) {
+                    $fs->remove($filename);
+                    $numDeleted++;
+                }
+                else {
+                    $numKept++;
+                }
+            }
         }
         catch (IOException $e) {
-            return false;
         }
-        return true;
+        closedir($handle);
+        return array($num, $numDeleted, $numKept);
     }
 
-    public function clean($projectRoot, $keep = 3, OutputInterface $output = null)
+    public function clean($projectRoot, $keep = 5, OutputInterface $output = null)
     {
         $output = $output ?: new NullOutput();
         $buildsDir = $projectRoot . '/builds';
@@ -265,15 +307,14 @@ class LocalBuild
         $handle = opendir($buildsDir);
         while ($entry = readdir($handle)) {
             if (strpos($entry, '.') !== 0) {
-                $builds[] = $buildsDir . '/' . $entry;
+                $builds[] = $entry;
             }
         }
 
         $count = count($builds);
 
         if (!$count) {
-            $output->writeln("There are no builds to delete.");
-            return;
+            return array(0, 0, 0);
         }
 
         // Remove old builds.
@@ -284,7 +325,7 @@ class LocalBuild
         foreach ($builds as $build) {
             if ($count - $numDeleted > $keep) {
                 $output->writeln("Deleting: $build");
-                $fs->remove($build);
+                $fs->remove($buildsDir . '/' . $build);
                 $numDeleted++;
             }
             else {
@@ -292,16 +333,7 @@ class LocalBuild
             }
         }
 
-        $output->writeln("Deleting archives");
-        $this->deleteArchives($projectRoot);
-
-        if ($numDeleted) {
-            $output->writeln("Deleted <info>$numDeleted</info> build(s).");
-        }
-
-        if ($numKept) {
-            $output->writeln("Kept <info>$numKept</info> build(s).");
-        }
+        return array($count, $numDeleted, $numKept);
     }
 
     protected function archiveBuild($buildDir, $destination)
