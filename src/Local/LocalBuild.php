@@ -143,14 +143,20 @@ class LocalBuild
      */
     protected function getTreeId($appRoot)
     {
+        $hashes = array();
         $helper = new GitHelper();
-        $untracked = $helper->execute(array('ls-files', '--others', '--exclude-standard', '-z'), $appRoot);
-        if (is_string($untracked) && !empty($untracked)) {
-            return false;
-        }
         $tree = $helper->execute(array('ls-tree', 'HEAD', '.'), $appRoot, true);
         $tree = preg_replace('#^|\n[^\n]+?\.platform\n|$#', "\n", $tree);
-        return sha1($tree);
+        $hashes[] = sha1($tree);
+        // Get the hashes of untracked files.
+        $untracked = $helper->execute(array('ls-files', '--others', '--exclude-standard', '-z'), $appRoot);
+        foreach (explode("\n", $untracked) as $filename) {
+            if (is_dir($filename) || strpos($filename, '.platform/') === 0) {
+                continue;
+            }
+            $hashes[] = sha1_file("$appRoot/$filename");
+        }
+        return sha1(implode(' ', $hashes));
     }
 
     /**
