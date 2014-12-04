@@ -269,6 +269,9 @@ class LocalBuild
     public function cleanArchives($projectRoot, $ttl = 604800)
     {
         $dir = $projectRoot . '/.build-archives';
+        if (!is_dir($dir)) {
+            return array(0, 0, 0);
+        }
         $fs = new Filesystem();
         $handle = opendir($dir);
         $now = time();
