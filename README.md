@@ -50,11 +50,7 @@ Start a new shell or type `source <filename>` to load the new configuration.
 
 You can run the Platform.sh CLI in your shell by typing `platform`.
 
-        platform
-
-Use the 'list' command to get a list of available options and commands:
-
-        platform list
+Use `platform list` to get a list of available options and commands.
 
 ### Commands
 
