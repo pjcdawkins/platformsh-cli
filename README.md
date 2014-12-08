@@ -9,42 +9,12 @@ The **Platform.sh CLI** is the official command-line interface for [Platform.sh]
 * [Composer](https://getcomposer.org/)
 * [Drush](https://github.com/drush-ops/drush) (only needed for Drupal projects)
 
-### Installation
+### Installing or updating
 
-* [Install Composer globally](https://getcomposer.org/doc/00-intro.md#globally).
-
-* Install the latest stable version of the CLI:
-
-        composer global require 'platformsh/cli:1.*'
-
-* Make sure Composer's `vendor/bin` directory is in your system's PATH.
-
-  In Linux or OS X, add this line to your [shell configuration file](#shell-configuration-file):
-
-        export PATH="$PATH:~/.composer/vendor/bin"
-
-  In Windows, use this command from a Command Prompt (cmd.exe):
-
-        setx PATH "%PATH%;%APPDATA%\Composer\vendor\bin"
-
-  Start a new shell before continuing.
-
-* Optionally, enable auto-completion. Add these lines to your [shell
-  configuration file](#shell-configuration-file):
-
-        # Platform.sh CLI configuration
-        PLATFORMSH_CONF=~/.composer/vendor/platformsh/cli/platform.rc
-        [ -f "$PLATFORMSH_CONF" ] && . "$PLATFORMSH_CONF"
-
-#### Shell configuration file
-Your 'shell configuration file' might be in any of the following
-locations:
-
-* `~/.bashrc` (common in Linux)
-* `~/.bash_profile` (common in OS X)
-* `~/.zshrc` (if using ZSH)
-
-Start a new shell or type `source <filename>` to load the new configuration.
+* Use our installer script:
+    ```sh
+    curl -sSf https://platformsh/cli/installer | bash
+    ```
 
 ### Usage
 
