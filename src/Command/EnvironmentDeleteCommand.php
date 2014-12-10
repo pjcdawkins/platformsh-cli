@@ -37,6 +37,15 @@ class EnvironmentDeleteCommand extends EnvironmentCommand
             return 1;
         }
 
+        // Check that the environment does not have children.
+        // @todo remove this check when Platform's behavior is fixed
+        foreach ($this->getEnvironments($this->project) as $environment) {
+            if ($environment['parent'] == $this->environment['id']) {
+                $output->writeln("<error>Parent environments cannot be deleted.</error>");
+                return 1;
+            }
+        }
+
         if (!$this->getHelper('question')->confirm("Are you sure you want to delete the environment <info>$environmentId</info>?", $input, $output)) {
             return 0;
         }
