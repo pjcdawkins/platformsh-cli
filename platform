@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-define('CLI_ACCOUNTS_SITE', (getenv("PLATFORM_CLI_ACCOUNTS_SITE") ?: "https://marketplace.commerceguys.com"));
+define('CLI_ACCOUNTS_SITE', (getenv("PLATFORM_CLI_ACCOUNTS_ENDPOINT") ?: "https://api.platform.sh"));
 
 // Important: CLI_VERIFY_SSL_CERT must always be true in production.
 // We use a reversed environment variable here to account for the crappy behavior of PHP's getenv().

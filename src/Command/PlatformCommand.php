@@ -151,7 +151,7 @@ abstract class PlatformCommand extends Command
             $this->accountClient = new Client();
             $this->accountClient->setDescription($description);
             $this->accountClient->addSubscriber($oauth2Plugin);
-            $this->accountClient->setBaseUrl(CLI_ACCOUNTS_SITE . '/api/platform');
+            $this->accountClient->setBaseUrl(CLI_ACCOUNTS_SITE);
             $this->accountClient->setDefaultOption('verify', CLI_VERIFY_SSL_CERT);
         }
 
