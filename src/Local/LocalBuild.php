@@ -333,7 +333,7 @@ class LocalBuild
      * @param OutputInterface $output
      *
      * @return int[]
-     *   The numbers of kept and deleted builds.
+     *   The numbers of deleted and kept builds.
      */
     public function cleanBuilds($projectRoot, $ttl = 86400, $keepMax = 10, $includeActive = false, OutputInterface $output = null)
     {
@@ -342,7 +342,7 @@ class LocalBuild
         // build(s).
         $blacklist = array();
         if (!$includeActive) {
-            $blacklist = array_map('basename', $this->getActiveBuilds($projectRoot));
+            $blacklist = $this->getActiveBuilds($projectRoot);
         }
 
         return $this->cleanDirectory($projectRoot . '/builds', $ttl, $keepMax, $blacklist, $output);
@@ -386,7 +386,7 @@ class LocalBuild
      * @param int    $keepMax
      *
      * @return int[]
-     *   The numbers of kept and deleted builds.
+     *   The numbers of deleted and kept builds.
      */
     public function cleanArchives($projectRoot, $ttl = 604800, $keepMax = 10)
     {
@@ -410,28 +410,28 @@ class LocalBuild
             return array(0, 0);
         }
         $output = $output ?: new NullOutput();
-        $handle = opendir($directory);
         $now = time();
         $numDeleted = 0;
         $numKept = 0;
-        while ($entry = readdir($handle)) {
-            if ($entry[0] == '.') {
-                continue;
-            }
-            if (in_array($entry, $blacklist)) {
+        $finder = new Finder();
+        $finder->in($directory)
+            ->depth(0)
+            ->ignoreDotFiles(true)
+            ->sortByModifiedTime();
+        /** @var \Symfony\Component\Finder\SplFileInfo $file */
+        foreach ($finder as $file) {
+            if (in_array($file->getPath(), $blacklist)) {
                 $numKept++;
                 continue;
             }
-            $filename = $directory . '/' . $entry;
-            if (($ttl && $now - filemtime($filename) > $ttl) || $numKept >= $keepMax) {
-                $output->writeln("Deleting: $entry");
-                $this->fsHelper->remove($filename);
+            if (($ttl && $now - $file->getMTime() > $ttl) || $numKept >= $keepMax) {
+                $output->writeln("Deleting: " . $file->getRelativePath());
+                $this->fsHelper->remove($file->getPath());
                 $numDeleted++;
             } else {
                 $numKept++;
             }
         }
-        closedir($handle);
 
         return array($numDeleted, $numKept);
     }
