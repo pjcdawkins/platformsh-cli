@@ -548,6 +548,31 @@ abstract class PlatformCommand extends Command
     }
 
     /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return array
+     */
+    protected function getSelectedEnvironments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->environment) {
+            return array($this->environment);
+        }
+        $environmentIds = $input->getArgument($this->envArgName);
+        $environments = $this->getEnvironments($this->project);
+        $selectedEnvironments = array_intersect_key($environments, array_flip($environmentIds));
+        if (array_diff($environmentIds, array_keys($selectedEnvironments))) {
+            $environments = $this->getEnvironments($this->project, true);
+            $selectedEnvironments = array_intersect_key($environments, array_flip($environmentIds));
+        }
+        $notFound = array_diff($environmentIds, array_keys($selectedEnvironments));
+        foreach ($notFound as $notFoundId) {
+            $output->writeln("Environment not found: <error>$notFoundId</error>");
+        }
+        return $selectedEnvironments;
+    }
+
+    /**
      * @param InputInterface  $input
      * @param OutputInterface $output
      *

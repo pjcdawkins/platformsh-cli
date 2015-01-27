@@ -44,14 +44,7 @@ class EnvironmentDeactivateCommand extends EnvironmentCommand
             $toDeactivate = array($this->environment);
         }
         else {
-            $environments = $this->getEnvironments($this->project);
-            $environmentIds = $input->getArgument('environment');
-            $toDeactivate = array_intersect_key($environments, array_flip($environmentIds));
-
-            $notFound = array_diff($environmentIds, array_keys($environments));
-            foreach ($notFound as $notFoundId) {
-                $output->writeln("Environment not found: <error>$notFoundId</error>");
-            }
+            $toDeactivate = $this->getSelectedEnvironments($input, $output);
         }
 
         $success = $this->deactivateMultiple($toDeactivate, $input, $output);

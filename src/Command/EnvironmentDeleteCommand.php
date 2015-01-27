@@ -41,12 +41,7 @@ class EnvironmentDeleteCommand extends EnvironmentCommand
             $toDelete = array($this->environment);
         }
         else {
-            $environmentIds = $input->getArgument('environment');
-            $toDelete = array_intersect_key($environments, array_flip($environmentIds));
-            $notFound = array_diff($environmentIds, array_keys($environments));
-            foreach ($notFound as $notFoundId) {
-                $output->writeln("Environment not found: <error>$notFoundId</error>");
-            }
+            $toDelete = $this->getSelectedEnvironments($input, $output);
         }
 
         $success = $this->deleteMultiple($toDelete, $input, $output);
