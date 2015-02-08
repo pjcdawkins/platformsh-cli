@@ -2,10 +2,12 @@
 
 namespace CommerceGuys\Platform\Cli\Local;
 
+use CommerceGuys\Platform\Cli\Helper\FilesystemHelper;
 use CommerceGuys\Platform\Cli\Helper\GitHelper;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Dumper;
 use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class LocalProject
 {
@@ -118,6 +120,32 @@ class LocalProject
     }
 
     /**
+     * Find the root of the current or specified project.
+     *
+     * @param string $alias
+     *
+     * @return string|false
+     */
+    public static function getProjectRoot($alias = null)
+    {
+        if ($alias === null) {
+            return self::getCurrentProjectRoot();
+        }
+        $fsHelper = new FilesystemHelper();
+        $homeDir = $fsHelper->getHomeDirectory();
+        $filename = "$homeDir/.platformsh-cli/config/$alias.yaml";
+        if (!file_exists($filename)) {
+            return false;
+        }
+        $yaml = new Yaml();
+        $config = $yaml->parse(file_get_contents($filename));
+        if (!empty($config['root']) && is_dir($config['root'])) {
+            return $config['root'];
+        }
+        return false;
+    }
+
+    /**
      * Find the root of the current project.
      *
      * The project root contains a .platform-project YAML file. The current
@@ -125,7 +153,7 @@ class LocalProject
      *
      * @return string|false
      */
-    public static function getProjectRoot()
+    public static function getCurrentProjectRoot()
     {
         // Statically cache the result, unless the CWD changes.
         static $projectRoot, $lastDir;
@@ -168,7 +196,7 @@ class LocalProject
      */
     public static function getCurrentProjectConfig() {
         $projectConfig = null;
-        $projectRoot = self::getProjectRoot();
+        $projectRoot = self::getCurrentProjectRoot();
         if ($projectRoot) {
             $yaml = new Parser();
             $projectConfig = $yaml->parse(file_get_contents($projectRoot . '/' . self::PROJECT_CONFIG));
@@ -192,7 +220,7 @@ class LocalProject
         if (!$projectConfig) {
             throw new \Exception('Current project configuration not found');
         }
-        $projectRoot = self::getProjectRoot();
+        $projectRoot = self::getCurrentProjectRoot();
         if (!$projectRoot) {
             throw new \Exception('Project root not found');
         }

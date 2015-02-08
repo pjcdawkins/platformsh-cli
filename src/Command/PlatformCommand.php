@@ -6,14 +6,17 @@ use CommerceGuys\Guzzle\Plugin\Oauth2\Oauth2Plugin;
 use CommerceGuys\Guzzle\Plugin\Oauth2\GrantType\PasswordCredentials;
 use CommerceGuys\Guzzle\Plugin\Oauth2\GrantType\RefreshToken;
 use CommerceGuys\Platform\Cli\Api\PlatformClient;
+use CommerceGuys\Platform\Cli\Application;
 use CommerceGuys\Platform\Cli\Local\LocalProject;
 use CommerceGuys\Platform\Cli\Model\Environment;
+use CommerceGuys\Platform\Cli\PlatformInput;
 use Guzzle\Service\Client;
 use Guzzle\Service\Description\ServiceDescription;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Yaml\Parser;
@@ -68,7 +71,8 @@ abstract class PlatformCommand extends Command
         $application = $this->getApplication();
         $command = $application->find('login');
         $input = new ArrayInput(array('command' => 'login'));
-        $exitCode = $command->run($input, $application->getOutput());
+        $output = $application instanceof Application ? $application->getOutput() : new NullOutput();
+        $exitCode = $command->run($input, $output);
         if ($exitCode) {
             throw new \Exception('Login failed');
         }
@@ -220,6 +224,20 @@ abstract class PlatformCommand extends Command
           $project += $config;
         }
         return $project;
+    }
+
+    /**
+     * @param InputInterface $input
+     *
+     * @return string|false
+     */
+    public function getProjectRoot(InputInterface $input = null)
+    {
+        $alias = null;
+        if ($input && $input instanceof PlatformInput && !empty($input->platformAlias)) {
+            $alias = $input->platformAlias;
+        }
+        return LocalProject::getProjectRoot($alias);
     }
 
     /**
@@ -412,14 +430,6 @@ abstract class PlatformCommand extends Command
         $drushHelper = $this->getHelper('drush');
         $drushHelper->setHomeDir($this->getHelper('fs')->getHomeDirectory());
         $drushHelper->createAliases($project, $projectRoot, $environments);
-    }
-
-    /**
-     * @return string|false
-     */
-    protected function getProjectRoot()
-    {
-        return LocalProject::getProjectRoot();
     }
 
     /**

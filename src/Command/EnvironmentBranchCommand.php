@@ -91,7 +91,7 @@ class EnvironmentBranchCommand extends EnvironmentCommand
 
         $force = $input->getOption('force');
 
-        $projectRoot = $this->getProjectRoot();
+        $projectRoot = $this->getProjectRoot($input);
         if ($projectRoot) {
             $gitHelper = $this->getHelper('git');
             $gitHelper->setOutput($output);

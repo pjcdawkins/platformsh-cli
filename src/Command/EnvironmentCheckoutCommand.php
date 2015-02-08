@@ -59,7 +59,7 @@ class EnvironmentCheckoutCommand extends PlatformCommand
             return 1;
         }
 
-        $projectRoot = $this->getProjectRoot();
+        $projectRoot = $this->getProjectRoot($input);
 
         $gitHelper = new GitHelper();
         $gitHelper->setOutput($output);
