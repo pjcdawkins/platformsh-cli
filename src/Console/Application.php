@@ -1,13 +1,14 @@
 <?php
 
-namespace Platformsh\Cli;
+namespace Platformsh\Cli\Console;
 
+use Platformsh\Cli\Command;
 use Platformsh\Cli\Helper\DrushHelper;
 use Platformsh\Cli\Helper\FilesystemHelper;
 use Platformsh\Cli\Helper\GitHelper;
 use Platformsh\Cli\Helper\PlatformQuestionHelper;
 use Platformsh\Cli\Helper\ShellHelper;
-use Symfony\Component\Console\Application as ParentApplication;
+use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,7 +18,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Shell;
 
-class Application extends ParentApplication
+class Application extends BaseApplication
 {
 
     /**

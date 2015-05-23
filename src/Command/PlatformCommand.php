@@ -4,6 +4,7 @@ namespace Platformsh\Cli\Command;
 
 use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\VoidCache;
+use Platformsh\Cli\Console\ArgvInput;
 use Platformsh\Cli\Exception\LoginRequiredException;
 use Platformsh\Cli\Exception\RootNotFoundException;
 use Platformsh\Cli\Helper\FilesystemHelper;
@@ -20,6 +21,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
+use Symfony\Component\Yaml\Yaml;
 
 abstract class PlatformCommand extends Command
 {
@@ -38,6 +40,9 @@ abstract class PlatformCommand extends Command
 
     /** @var bool */
     protected static $interactive = false;
+
+    /** @var string */
+    protected $homeDir;
 
     /** @var OutputInterface|null */
     protected $output;
@@ -85,6 +90,10 @@ abstract class PlatformCommand extends Command
         $this->projectsTtl = getenv('PLATFORMSH_CLI_PROJECTS_TTL') ?: 3600;
         $this->environmentsTtl = getenv('PLATFORMSH_CLI_ENVIRONMENTS_TTL') ?: 600;
 
+        if (!isset($this->homeDir)) {
+            $fs = new FilesystemHelper();
+            $this->homeDir = $fs->getHomeDirectory();
+        }
         if (getenv('PLATFORMSH_CLI_SESSION_ID')) {
             self::$sessionId = getenv('PLATFORMSH_CLI_SESSION_ID');
         }
@@ -175,6 +184,31 @@ abstract class PlatformCommand extends Command
     {
         $this->output = $output;
         self::$interactive = $input->isInteractive();
+
+        if ($input instanceof ArgvInput && $input->getAlias()) {
+            $this->loadAlias($input->getAlias());
+        }
+    }
+
+    /**
+     * Load the alias definition.
+     *
+     * @param string $alias
+     */
+    protected function loadAlias($alias)
+    {
+        $file = $this->homeDir . '/.platformsh/aliases/' . $alias . '.yaml';
+        if (!file_exists($file)) {
+            throw new \InvalidArgumentException("Alias not found: $alias");
+        }
+        $yaml = new Yaml();
+        $alias = (array) $yaml->parse(file_get_contents($file));
+        if (isset($alias['project']['id'])) {
+            $this->selectProject($alias['project']['id'], isset($alias['project']['host']) ? $alias['project']['host'] : null);
+        }
+        if (isset($alias['project']['root'])) {
+            $this->setProjectRoot($alias['project']['root']);
+        }
     }
 
     /**
@@ -192,8 +226,7 @@ abstract class PlatformCommand extends Command
     {
         $sessionId = 'cli-' . preg_replace('/[\W]+/', '-', self::$sessionId);
 
-        $fs = new FilesystemHelper();
-        return $fs->getHomeDirectory() . '/.platformsh/.session/sess-' . $sessionId;
+        return $this->homeDir . '/.platformsh/.session/sess-' . $sessionId;
     }
 
     /**
@@ -552,10 +585,7 @@ abstract class PlatformCommand extends Command
         }
         /** @var \Platformsh\Cli\Helper\DrushHelper $drushHelper */
         $drushHelper = $this->getHelper('drush');
-        $drushHelper->setHomeDir(
-          $this->getHelper('fs')
-               ->getHomeDirectory()
-        );
+        $drushHelper->setHomeDir($this->homeDir);
         $drushHelper->createAliases($project, $projectRoot, $environments);
     }
 
