@@ -204,7 +204,7 @@ abstract class PlatformCommand extends Command
         $yaml = new Yaml();
         $alias = (array) $yaml->parse(file_get_contents($file));
         if (isset($alias['project']['id'])) {
-            $this->selectProject($alias['project']['id'], isset($alias['project']['host']) ? $alias['project']['host'] : null);
+            $this->project = $this->selectProject($alias['project']['id'], isset($alias['project']['host']) ? $alias['project']['host'] : null);
         }
         if (isset($alias['project']['root'])) {
             $this->setProjectRoot($alias['project']['root']);
@@ -745,7 +745,9 @@ abstract class PlatformCommand extends Command
         // Select the project.
         $projectId = $input->hasOption('project') ? $input->getOption('project') : null;
         $projectHost = $input->hasOption('host') ? $input->getOption('host') : null;
-        $this->project = $this->selectProject($projectId, $projectHost);
+        if (!isset($this->project)) {
+            $this->project = $this->selectProject($projectId, $projectHost);
+        }
 
         // Select the environment.
         $envOptionName = 'environment';
