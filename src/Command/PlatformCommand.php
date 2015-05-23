@@ -197,6 +197,9 @@ abstract class PlatformCommand extends Command
      */
     protected function loadAlias($alias)
     {
+        if (strpos($alias, '.')) {
+            list($alias, $environmentId) = explode('.', $alias, 2);
+        }
         $file = $this->homeDir . '/.platformsh/aliases/' . $alias . '.yaml';
         if (!file_exists($file)) {
             throw new \InvalidArgumentException("Alias not found: $alias");
@@ -208,6 +211,9 @@ abstract class PlatformCommand extends Command
         }
         if (isset($alias['project']['root'])) {
             $this->setProjectRoot($alias['project']['root']);
+        }
+        if (isset($environmentId)) {
+            $this->environment = $this->selectEnvironment($environmentId);
         }
     }
 
@@ -751,7 +757,7 @@ abstract class PlatformCommand extends Command
 
         // Select the environment.
         $envOptionName = 'environment';
-        if ($input->hasArgument($this->envArgName) && $input->getArgument($this->envArgName)) {
+        if (!isset($this->environment) && $input->hasArgument($this->envArgName) && $input->getArgument($this->envArgName)) {
             if ($input->hasOption($envOptionName) && $input->getOption($envOptionName)) {
                 throw new \InvalidArgumentException(
                   sprintf(
@@ -768,7 +774,7 @@ abstract class PlatformCommand extends Command
             if (!is_array($argument)) {
                 $this->environment = $this->selectEnvironment($argument);
             }
-        } elseif ($input->hasOption($envOptionName)) {
+        } elseif (!isset($this->environment) && $input->hasOption($envOptionName)) {
             if ($envNotRequired && !$input->getOption($envOptionName)) {
                 $this->environment = $this->getCurrentEnvironment($this->project);
             }
