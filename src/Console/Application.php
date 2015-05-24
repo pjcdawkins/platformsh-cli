@@ -126,6 +126,7 @@ class Application extends BaseApplication
         $commands[] = new Command\IntegrationDeleteCommand();
         $commands[] = new Command\IntegrationGetCommand();
         $commands[] = new Command\IntegrationUpdateCommand();
+        $commands[] = new Command\LocalAliasCommand();
         $commands[] = new Command\LocalBuildCommand();
         $commands[] = new Command\LocalCleanCommand();
         $commands[] = new Command\LocalDrushAliasesCommand();
