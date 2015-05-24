@@ -4,6 +4,7 @@ namespace Platformsh\Cli\Command;
 
 use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\VoidCache;
+use Platformsh\Cli\Console\Application;
 use Platformsh\Cli\Console\ArgvInput;
 use Platformsh\Cli\Exception\LoginRequiredException;
 use Platformsh\Cli\Exception\RootNotFoundException;
@@ -185,8 +186,9 @@ abstract class PlatformCommand extends Command
         $this->output = $output;
         self::$interactive = $input->isInteractive();
 
-        if ($input instanceof ArgvInput && $input->getAlias()) {
-            $this->loadAlias($input->getAlias());
+        $app = $this->getApplication();
+        if ($app instanceof Application && $app->alias) {
+            $this->loadAlias($app->alias);
         }
     }
 

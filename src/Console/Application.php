@@ -21,6 +21,8 @@ use Symfony\Component\Console\Shell;
 class Application extends BaseApplication
 {
 
+    public $alias;
+
     /**
      * {@inheritdoc}
      */
@@ -183,6 +185,11 @@ class Application extends BaseApplication
             $shell->run();
 
             return 0;
+        }
+
+        // Process aliases.
+        if ($input instanceof ArgvInput) {
+            $this->alias = $input->getAlias() ?: null;
         }
 
         return parent::doRun($input, $output);
