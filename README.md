@@ -133,6 +133,7 @@ integration
   integration:get (integrations)            View project integration(s)
   integration:update                        Update an integration
 local
+  local:alias                               Create an alias for the current project
   local:build (build)                       Build the current project locally
   local:clean (clean)                       Remove old project builds
   local:drush-aliases (drush-aliases)       Find the project's Drush aliases
