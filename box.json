@@ -9,8 +9,11 @@
         "vendor/composer",
         "vendor/doctrine",
         "vendor/guzzlehttp",
+        "vendor/justinrainbow",
+        "vendor/hererra-io",
         "vendor/platformsh",
         "vendor/react",
+        "vendor/seld",
         "vendor/stecman",
         "vendor/symfony"
     ],
