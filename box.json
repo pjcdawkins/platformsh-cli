@@ -1,0 +1,24 @@
+{
+    "alias": "platform.phar",
+    "chmod": "0755",
+    "directories": [
+        "resources",
+        "src",
+        "vendor/cocur",
+        "vendor/commerceguys",
+        "vendor/composer",
+        "vendor/doctrine",
+        "vendor/guzzlehttp",
+        "vendor/platformsh",
+        "vendor/react",
+        "vendor/stecman",
+        "vendor/symfony"
+    ],
+    "files": [
+        "platform",
+        "vendor/autoload.php"
+    ],
+    "main": "platform",
+    "output": "platform.phar",
+    "stub": true
+}
