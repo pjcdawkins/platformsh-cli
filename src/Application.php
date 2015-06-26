@@ -25,7 +25,7 @@ class Application extends ParentApplication
      */
     public function __construct()
     {
-        parent::__construct('Platform.sh CLI', '@package_version@');
+        parent::__construct('Platform.sh CLI', '2.x-dev');
 
         $this->setDefaultTimezone();
 
@@ -134,7 +134,6 @@ class Application extends ParentApplication
         $commands[] = new Command\LocalInitCommand();
         $commands[] = new Command\ProjectGetCommand();
         $commands[] = new Command\ProjectMetadataCommand();
-        $commands[] = new Command\SelfUpdateCommand();
         $commands[] = new Command\SshKeyAddCommand();
         $commands[] = new Command\SshKeyDeleteCommand();
         $commands[] = new Command\SshKeyListCommand();

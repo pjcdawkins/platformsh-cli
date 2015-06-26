@@ -1,5 +1,4 @@
 {
-    "alias": "platform.phar",
     "chmod": "0755",
     "directories": [
         "resources",
@@ -21,7 +20,6 @@
         "platform",
         "vendor/autoload.php"
     ],
-    "git-version": "package_version",
     "main": "platform",
     "output": "platform.phar",
     "stub": true
