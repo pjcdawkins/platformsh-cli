@@ -12,7 +12,7 @@ COMPOSER_CMD=composer
 PROFILE=${PROFILE:-''}
 
 main() {
-	local VERSION=${1:-'1.*'}
+	local VERSION=${1:-'@stable'}
 	local CLI_DIR="${HOME}/.platformsh-cli"
 
 	[ ! -d "$CLI_DIR" ] && mkdir "$CLI_DIR"
