@@ -1,3 +1,4 @@
 vendor
 platform.phar
 private.key
+manifest.json
