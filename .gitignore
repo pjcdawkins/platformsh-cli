@@ -1,4 +1,7 @@
 vendor
+
+; Box and Phar-related files.
 platform.phar
-private.key
+*.pubkey
+*.key
 manifest.json

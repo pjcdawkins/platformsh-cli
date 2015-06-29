@@ -14,7 +14,9 @@ class SelfBuildCommand extends PlatformCommand
           ->setName('self-build')
           ->setDescription('Build a new package of the CLI')
           ->addOption('manifest', null, InputOption::VALUE_OPTIONAL, 'The manifest file to update')
-          ->addOption('url', null, InputOption::VALUE_OPTIONAL, 'The URL where the package will be published');
+          ->addOption('url', null, InputOption::VALUE_OPTIONAL, 'The URL where the package will be published')
+          ->addOption('key', null, InputOption::VALUE_OPTIONAL, 'The path to a private key')
+          ->addOption('output', null, InputOption::VALUE_OPTIONAL, 'The output filename');
         $this->setHiddenInList();
     }
 
@@ -26,11 +28,14 @@ class SelfBuildCommand extends PlatformCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $manifestFilename = $input->getOption('manifest');
-        if ($manifestFilename) {
-            if (!is_writable(dirname($manifestFilename))) {
-                $this->stdErr->writeln("Not writable: <info>$manifestFilename</info>");
-                return 1;
-            }
+        if ($manifestFilename && !is_writable(dirname($manifestFilename))) {
+            $this->stdErr->writeln("Not writable: <error>$manifestFilename</error>");
+            return 1;
+        }
+        $outputFilename = $input->getOption('output');
+        if ($outputFilename && !is_writable(dirname($outputFilename))) {
+            $this->stdErr->writeln("Not writable: <error>$outputFilename</error>");
+            return 1;
         }
 
         /** @var \Platformsh\Cli\Helper\ShellHelper $shellHelper */
@@ -42,8 +47,23 @@ class SelfBuildCommand extends PlatformCommand
             return 1;
         }
 
-        $phar = CLI_ROOT . '/platform.phar';
+        $keyFilename = $input->getOption('key');
+        if ($keyFilename && !file_exists($keyFilename)) {
+            $this->stdErr->writeln("File not found: <error>$keyFilename</error>");
+            return 1;
+        }
 
+        $config = array();
+        if ($outputFilename) {
+            /** @var \Platformsh\Cli\Helper\FilesystemHelper $fsHelper */
+            $fsHelper = $this->getHelper('fs');
+            $config['output'] = $fsHelper->makePathAbsolute($outputFilename);
+        }
+        if ($keyFilename) {
+            $config['key'] = realpath($keyFilename);
+        }
+
+        $phar = isset($config['output']) ? $config['output'] : CLI_ROOT . '/platform.phar';
         if (file_exists($phar)) {
             /** @var \Platformsh\Cli\Helper\PlatformQuestionHelper $questionHelper */
             $questionHelper = $this->getHelper('question');
@@ -52,10 +72,26 @@ class SelfBuildCommand extends PlatformCommand
             }
         }
 
-        $this->stdErr->writeln("Building Phar package using Box: $phar");
+        $boxArgs = array('box', 'build', '--no-interaction');
 
+        // Create a temporary box.json file for this build.
+        if (!empty($config)) {
+            $originalConfig = json_decode(file_get_contents(CLI_ROOT . '/box.json'), true);
+            $config = array_merge($originalConfig, $config);
+            $config['base-path'] = CLI_ROOT;
+            $tmpJson = tempnam('/tmp', 'box_json');
+            file_put_contents($tmpJson, json_encode($config));
+            $boxArgs[] = '--configuration=' . $tmpJson;
+        }
+
+        $this->stdErr->writeln("Building Phar package using Box");
         $shellHelper->setOutput($output);
-        $shellHelper->execute(array('box', 'build'), CLI_ROOT, true, true);
+        $shellHelper->execute($boxArgs, CLI_ROOT, true, true);
+
+        // Clean up the temporary file.
+        if (!empty($tmpJson)) {
+            unlink($tmpJson);
+        }
 
         if (!file_exists($phar)) {
             $this->stdErr->writeln("File not found: <error>$phar</error>");
@@ -64,10 +100,12 @@ class SelfBuildCommand extends PlatformCommand
 
         $sha1 = sha1_file($phar);
         $version = $this->getApplication()->getVersion();
+        $size = filesize($phar);
 
         $this->stdErr->writeln("Package built: <info>$phar</info>");
-        $this->stdErr->writeln("SHA1: $sha1");
-        $this->stdErr->writeln("Version: $version");
+        $this->stdErr->writeln("  Size: " . number_format($size) . " B");
+        $this->stdErr->writeln("  SHA1: $sha1");
+        $this->stdErr->writeln("  Version: $version");
         if (!$manifestFilename) {
             return 0;
         }
