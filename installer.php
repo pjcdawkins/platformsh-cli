@@ -27,8 +27,8 @@ if (in_array('--no-ansi', $argv)) {
     );
 }
 
-out(PHP_EOL . "Platform.sh CLI Installer",'info');
-out(PHP_EOL . "[-] Environment Check", 'info');
+out(PHP_EOL . "Platform.sh CLI installer",'info');
+out(PHP_EOL . "[-] Environment check", 'info');
 
 // check version
 check(
@@ -119,8 +119,17 @@ check(
 
 out(PHP_EOL . "[-] Download", 'info');
 $manifest = file_get_contents(MANIFEST_URL);
+if ($manifest === false) {
+    out(PHP_EOL . "[ ] Failed to download manifest file: " . MANIFEST_URL . $n, 'error');
+    exit(1);
+}
 
 $manifest = json_decode($manifest);
+if ($manifest === null) {
+    out(PHP_EOL . "[ ] Failed to decode manifest file: " . MANIFEST_URL . $n, 'error');
+    exit(1);
+}
+
 $current = null;
 
 foreach ($manifest as $item) {
