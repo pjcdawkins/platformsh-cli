@@ -78,17 +78,22 @@ class PlatformQuestionHelper extends QuestionHelper
      * @param InputInterface  $input
      * @param OutputInterface $output
      * @param mixed           $default
+     * @param callable        $validator
      *
      * @return string
      *   The user's answer.
      */
-    public function askInput($questionText, InputInterface $input, OutputInterface $output, $default = null)
+    public function askInput($questionText, InputInterface $input, OutputInterface $output, $default = null, callable $validator = null)
     {
         if ($default !== null) {
             $questionText .= ' <question>[' . $default . ']</question>';
         }
         $questionText .= ': ';
         $question = new Question($questionText, $default);
+        if ($validator !== null) {
+            $question->setValidator($validator);
+            $question->setMaxAttempts(5);
+        }
 
         return $this->ask($input, $output, $question);
     }

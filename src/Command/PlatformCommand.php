@@ -557,6 +557,14 @@ abstract class PlatformCommand extends Command
     }
 
     /**
+     * Clear the cached projects list.
+     */
+    protected function clearProjectsCache()
+    {
+        self::$cache->delete('projects');
+    }
+
+    /**
      * @param Project       $project
      * @param Environment[] $environments
      */
