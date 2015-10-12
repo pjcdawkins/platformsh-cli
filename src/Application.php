@@ -96,12 +96,13 @@ class Application extends ParentApplication
             return $commands;
         }
 
+        $commands[] = new Command\Account\AccountInfoCommand();
+        $commands[] = new Command\Account\LogoutCommand();
+        $commands[] = new Command\Account\LoginCommand();
         $commands[] = new Command\CompletionCommand();
         $commands[] = new Command\DocsCommand();
         $commands[] = new Command\Activity\ActivityListCommand();
         $commands[] = new Command\Activity\ActivityLogCommand();
-        $commands[] = new Command\Auth\LogoutCommand();
-        $commands[] = new Command\Auth\LoginCommand();
         $commands[] = new Command\Domain\DomainAddCommand();
         $commands[] = new Command\Domain\DomainDeleteCommand();
         $commands[] = new Command\Domain\DomainListCommand();

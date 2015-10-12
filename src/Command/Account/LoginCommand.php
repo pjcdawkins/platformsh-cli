@@ -1,5 +1,5 @@
 <?php
-namespace Platformsh\Cli\Command\Auth;
+namespace Platformsh\Cli\Command\Account;
 
 use GuzzleHttp\Exception\BadResponseException;
 use Platformsh\Cli\Command\PlatformCommand;
@@ -13,7 +13,8 @@ class LoginCommand extends PlatformCommand
     protected function configure()
     {
         $this
-          ->setName('login')
+          ->setName('account:login')
+          ->setAliases(array('login'))
           ->setDescription('Log in to Platform.sh');
     }
 

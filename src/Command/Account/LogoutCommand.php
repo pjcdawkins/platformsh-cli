@@ -1,5 +1,5 @@
 <?php
-namespace Platformsh\Cli\Command\Auth;
+namespace Platformsh\Cli\Command\Account;
 
 use Platformsh\Cli\Command\PlatformCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,7 +12,8 @@ class LogoutCommand extends PlatformCommand
     protected function configure()
     {
         $this
-          ->setName('logout')
+          ->setName('account:logout')
+          ->setAliases(array('logout'))
           ->addOption('all', null, InputOption::VALUE_NONE, 'Log out of all sessions')
           ->setDescription('Log out of Platform.sh');
     }

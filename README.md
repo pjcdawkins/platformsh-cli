@@ -87,10 +87,12 @@ Available commands:
   docs                                      Open the Platform.sh online documentation
   help                                      Displays help for a command
   list                                      Lists commands
-  login                                     Log in to Platform.sh
-  logout                                    Log out of Platform.sh
   self-update (up)                          Update the CLI to the latest version
   web                                       Open the Platform.sh Web UI
+account
+  account:info                              View your account information
+  account:login (login)                     Log in to Platform.sh
+  account:logout (logout)                   Log out of Platform.sh
 activity
   activity:list (activities)                Get the most recent activities for an environment
   activity:log                              Display the log for an environment activity
