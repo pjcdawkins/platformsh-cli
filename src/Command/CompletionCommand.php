@@ -8,7 +8,7 @@ use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand as Parent
 class CompletionCommand extends ParentCompletionCommand
 {
 
-    /** @var PlatformCommand */
+    /** @var CommandBase */
     protected $platformCommand;
 
     /**

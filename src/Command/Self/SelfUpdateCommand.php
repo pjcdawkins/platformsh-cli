@@ -4,12 +4,12 @@ namespace Platformsh\Cli\Command\Self;
 use Herrera\Phar\Update\Manager;
 use Herrera\Phar\Update\Manifest;
 use Herrera\Version\Parser;
-use Platformsh\Cli\Command\PlatformCommand;
+use Platformsh\Cli\Command\CommandBase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SelfUpdateCommand extends PlatformCommand
+class SelfUpdateCommand extends CommandBase
 {
     protected function configure()
     {
