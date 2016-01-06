@@ -91,10 +91,7 @@ class ManifestStrategy implements StrategyInterface
         if ($version === false) {
             throw new \RuntimeException('No remote versions found');
         }
-        $versionInfo = $this->getAvailableVersions();
-        if (!isset($versionInfo[$version])) {
-            throw new \RuntimeException(sprintf('Failed to find manifest item for version %s', $version));
-        }
+        $versionInfo = $this->getVersionInfo($version);
 
         $fileContents = file_get_contents($versionInfo[$version]['url']);
         if ($fileContents === false) {
@@ -117,6 +114,25 @@ class ManifestStrategy implements StrategyInterface
                 )
             );
         }
+    }
+
+    /**
+     * Get information on an available version.
+     *
+     * @param string $version
+     *
+     * @return array
+     *   An array of version information, containing at least the keys 'name',
+     *   'sha1', and 'url'.
+     */
+    private function getVersionInfo($version)
+    {
+        $versions = $this->getAvailableVersions();
+        if (!isset($versions[$version])) {
+            throw new \InvalidArgumentException(sprintf('Version info not found for version: %s', $version));
+        }
+
+        return $versions[$version];
     }
 
     /**
@@ -164,6 +180,20 @@ class ManifestStrategy implements StrategyInterface
         }
 
         return $this->manifest;
+    }
+
+    /**
+     * Get the release notes for a version.
+     *
+     * @param string $version
+     *
+     * @return string|null
+     */
+    public function getReleaseNotes($version)
+    {
+        $versionInfo = $this->getVersionInfo($version);
+
+        return isset($versionInfo['notes']) ? $versionInfo['notes'] : null;
     }
 
     /**

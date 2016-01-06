@@ -54,18 +54,25 @@ class SelfUpdateCommand extends CommandBase
             return 0;
         }
 
-        $newVersionString = $updater->getNewVersion();
         /** @var \Platformsh\Cli\Helper\PlatformQuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
-        if (!$questionHelper->confirm(sprintf('Update to version %s?', $newVersionString), $input, $output)) {
+
+        $newVersion = $updater->getNewVersion();
+
+        if ($notes = $strategy->getReleaseNotes($newVersion)) {
+            $this->stdErr->writeln(sprintf('Version %s is available. Release notes:', $newVersion));
+            $this->stdErr->writeln(preg_replace('/^/m', '  ', $notes));
+        }
+
+        if (!$questionHelper->confirm(sprintf('Update to version %s?', $newVersion), $input, $output)) {
             return 1;
         }
 
-        $this->stdErr->writeln(sprintf('Updating to version %s', $newVersionString));
+        $this->stdErr->writeln(sprintf('Updating to version %s', $newVersion));
 
         $updater->update();
 
-        $this->stdErr->writeln("Successfully updated to version <info>$newVersionString</info>");
+        $this->stdErr->writeln("Successfully updated to version <info>$newVersion</info>");
 
         // Errors appear if new classes are instantiated after this stage
         // (namely, Symfony's ConsoleTerminateEvent). This suggests PHP
