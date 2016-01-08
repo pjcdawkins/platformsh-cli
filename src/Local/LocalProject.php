@@ -10,8 +10,8 @@ use Symfony\Component\Yaml\Parser;
 class LocalProject
 {
 
-    const ARCHIVE_DIR = '.build-archives';
-    const BUILD_DIR = 'builds';
+    const ARCHIVE_DIR = '.platform/local/.build-archives';
+    const BUILD_DIR = '.platform/local/builds';
     const PROJECT_CONFIG = '.platform-project';
     const REPOSITORY_DIR = 'repository';
     const SHARED_DIR = 'shared';

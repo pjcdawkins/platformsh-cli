@@ -91,17 +91,14 @@ class LocalBuild
             }
         }
         if (empty($this->settings['noClean'])) {
+            $this->output->writeln("Cleaning up...");
             if (!empty($this->settings['projectRoot'])) {
-                $this->output->writeln("Cleaning up...");
                 $this->cleanBuilds($this->settings['projectRoot']);
                 $this->cleanArchives($this->settings['projectRoot']);
             }
             else {
-                $buildsDir = $sourceDir . '/' . LocalProject::BUILD_DIR;
-                if (is_dir($buildsDir)) {
-                    $this->output->writeln("Cleaning up...");
-                    $this->cleanDirectory($buildsDir);
-                }
+                $this->cleanBuilds($sourceDir);
+                $this->cleanArchives($sourceDir);
             }
         }
 
@@ -197,15 +194,8 @@ class LocalBuild
         if ($multiApp) {
             $buildName .= '--' . str_replace('/', '-', $appId);
         }
-        if (!empty($this->settings['projectRoot'])) {
-            $buildDir = $this->settings['projectRoot'] . '/' . LocalProject::BUILD_DIR . '/' . $buildName;
-        }
-        else {
-            $buildDir = $sourceDir . '/' . LocalProject::BUILD_DIR . '/' . $buildName;
-            // As the build directory is inside the source directory, ensure it
-            // isn't copied or symlinked into the build.
-            $toolstack->addIgnoredFiles([LocalProject::BUILD_DIR]);
-        }
+
+        $buildDir = $sourceDir . '/' . LocalProject::BUILD_DIR . '/' . $buildName;
 
         // If the destination is inside the source directory, ensure it isn't
         // copied or symlinked into the build.
@@ -237,13 +227,13 @@ class LocalBuild
         $toolstack->prepare($buildDir, $documentRoot, $appRoot, $buildSettings);
 
         $archive = false;
-        if (empty($this->settings['noArchive']) && empty($this->settings['noCache']) && !empty($this->settings['projectRoot'])) {
+        if (empty($this->settings['noArchive']) && empty($this->settings['noCache'])) {
             $treeId = $this->getTreeId($appRoot);
             if ($treeId) {
                 if ($verbose) {
                     $this->output->writeln("Tree ID: $treeId");
                 }
-                $archive = $this->settings['projectRoot'] . '/' . LocalProject::ARCHIVE_DIR . '/' . $treeId . '.tar.gz';
+                $archive = $sourceDir . '/' . LocalProject::ARCHIVE_DIR . '/' . $treeId . '.tar.gz';
             }
         }
 
