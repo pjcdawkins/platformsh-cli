@@ -112,6 +112,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Auth\LoginCommand();
         $commands[] = new Command\Domain\DomainAddCommand();
         $commands[] = new Command\Domain\DomainDeleteCommand();
+        $commands[] = new Command\Domain\DomainGetCommand();
         $commands[] = new Command\Domain\DomainListCommand();
         $commands[] = new Command\Environment\EnvironmentActivateCommand();
         $commands[] = new Command\Environment\EnvironmentBranchCommand();
