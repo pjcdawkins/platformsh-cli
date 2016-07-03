@@ -62,9 +62,6 @@ abstract class ToolstackBase implements ToolstackInterface
     /** @var string */
     protected $appRoot;
 
-    /** @var string */
-    private $documentRoot;
-
     /**
      * Whether all app files have just been symlinked or copied to the build.
      *
@@ -117,7 +114,6 @@ abstract class ToolstackBase implements ToolstackInterface
     {
         $this->app = $app;
         $this->appRoot = $app->getRoot();
-        $this->documentRoot = $app->getDocumentRoot();
         $this->settings = $settings;
         $this->config = $config;
 
@@ -229,7 +225,7 @@ abstract class ToolstackBase implements ToolstackInterface
      */
     public function getWebRoot()
     {
-        return $this->buildDir . '/' . $this->documentRoot;
+        return rtrim($this->buildDir . '/' . $this->app->getDocumentRoot(), '/');
     }
 
     /**
@@ -251,7 +247,7 @@ abstract class ToolstackBase implements ToolstackInterface
         $this->buildInPlace = true;
         $buildDir = $this->buildDir;
         if ($this->app->shouldMoveToRoot()) {
-            $buildDir .= '/' . $this->documentRoot;
+            $buildDir .= '/' . $this->app->getDocumentRoot();
         }
         if ($this->copy) {
             $this->fsHelper->copyAll($this->appRoot, $buildDir, $this->ignoredFiles, true);

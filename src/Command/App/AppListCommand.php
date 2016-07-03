@@ -38,10 +38,10 @@ class AppListCommand extends CommandBase
         foreach ($apps as $app) {
             $config = $app->getConfig();
             $type = isset($config['type']) ? $config['type'] : null;
-            $rows[] = [$app->getName(), $type, $app->getRoot()];
+            $rows[] = [$app->getName(), $type, $app->getRoot(), $app->getDocumentRoot()];
         }
 
         $table = new Table($input, $output);
-        $table->render($rows, ['Name', 'Type', 'Path']);
+        $table->render($rows, ['Name', 'Type', 'Path', 'Document root']);
     }
 }

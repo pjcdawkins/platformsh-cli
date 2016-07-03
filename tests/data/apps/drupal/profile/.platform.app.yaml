@@ -1,0 +1,8 @@
+type: php
+build:
+  flavor: drupal
+
+web:
+  locations:
+    "/":
+      root: "public"

@@ -4,14 +4,19 @@ build:
 
 # Test build hook
 hooks:
-    build: |
-        cd public
-        rm robots.txt
-        touch test.txt
+  build: |
+    cd public
+    rm robots.txt
+    touch test.txt
+
+web:
+  locations:
+    "/":
+      root: "public"
 
 # Test mounts
 mounts:
-    "/public/sites/default/files": "shared:files/files"
-    "/tmp": "shared:files/tmp"
-    "/private": "shared:files/private"
-    "/drush-backups": "shared:files/drush-backups"
+  "/public/sites/default/files": "shared:files/files"
+  "/tmp": "shared:files/tmp"
+  "/private": "shared:files/private"
+  "/drush-backups": "shared:files/drush-backups"

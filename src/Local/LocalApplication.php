@@ -145,9 +145,8 @@ class LocalApplication
         }
 
         // The `web` section has changed to `web`.`locations`.
-        if (isset($config['web']) && !isset($config['web']['locations'])) {
+        if (!isset($config['web']['locations']) && !empty($config['web'])) {
             $map = [
-                'document_root' => 'root',
                 'expires' => 'expires',
                 'passthru' => 'passthru',
             ];
@@ -155,6 +154,9 @@ class LocalApplication
                 if (array_key_exists($key, $config['web'])) {
                     $config['web']['locations']['/'][$newKey] = $config['web'][$key];
                 }
+            }
+            if (isset($config['web']['document_root'])) {
+                $config['web']['locations']['/']['root'] = ltrim($config['web']['document_root'], '/') ?: 'public';
             }
         }
 
@@ -264,34 +266,33 @@ class LocalApplication
      * Get the configured document root for the application, as a relative path.
      *
      * @return string
+     *   The document root, without leading or trailing slashes, or an empty
+     *   string if it is not set.
      */
     public function getDocumentRoot()
     {
         $config = $this->getConfig();
 
-        // The default document root is '/public'. This is used if the root is
-        // not set, if it is empty, or if it is set to '/'.
-        $documentRoot = '/public';
-        if (!empty($config['web']['locations']['/']['root']) && $config['web']['locations']['/']['root'] !== '/') {
-            $documentRoot = $config['web']['locations']['/']['root'];
+        if (isset($config['web']['locations'])) {
+            // Sort the locations so the '/' location is prioritized.
+            ksort($config['web']['locations']);
+            foreach ($config['web']['locations'] as $uri => $location) {
+                if (!empty($location['root'])) {
+                    return trim($location['root'], '/');
+                }
+            }
         }
 
-        return ltrim($documentRoot, '/');
+        return '';
     }
 
     /**
      * Check whether the whole app should be moved into the document root.
      *
-     * @return string
+     * @return bool
      */
     public function shouldMoveToRoot()
     {
-        $config = $this->getConfig();
-
-        if (isset($config['move_to_root']) && $config['move_to_root'] === true) {
-            return true;
-        }
-
-        return $this->getDocumentRoot() === 'public' && !is_dir($this->getRoot() . '/public');
+        return !empty($this->getConfig()['web']['move_to_root']);
     }
 }
