@@ -93,7 +93,7 @@ class ShellHelper extends Helper implements ShellHelperInterface, OutputAwareInt
 
         try {
             $process->mustRun($quiet ? null : function ($type, $buffer) {
-                $this->output->write(preg_replace('/^/m', '  ', $buffer));
+                $this->output->write(Util::indent($buffer));
             });
         } catch (ProcessFailedException $e) {
             if (!$mustRun) {

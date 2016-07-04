@@ -2,6 +2,7 @@
 namespace Platformsh\Cli\Command\Self;
 
 use Platformsh\Cli\Command\CommandBase;
+use Platformsh\Cli\Util\Util;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -66,7 +67,7 @@ EOT
                 . $suggestedShellConfig;
 
             $this->stdErr->writeln(sprintf('To set up the CLI, add the following lines to: <comment>%s</comment>', $shellConfigFile));
-            $this->stdErr->writeln(preg_replace('/^/m', '  ', $suggestedShellConfig));
+            $this->stdErr->writeln(Util::indent($suggestedShellConfig));
             return 1;
         }
 

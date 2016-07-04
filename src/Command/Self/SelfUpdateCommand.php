@@ -4,6 +4,7 @@ namespace Platformsh\Cli\Command\Self;
 use Humbug\SelfUpdate\Updater;
 use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\SelfUpdate\ManifestStrategy;
+use Platformsh\Cli\Util\Util;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -61,7 +62,7 @@ class SelfUpdateCommand extends CommandBase
         if ($notes = $strategy->getUpdateNotes($updater)) {
             $this->stdErr->writeln('');
             $this->stdErr->writeln(sprintf('Version <info>%s</info> is available. Update notes:', $newVersionString));
-            $this->stdErr->writeln(preg_replace('/^/m', '  ', $notes));
+            $this->stdErr->writeln(Util::indent($notes));
             $this->stdErr->writeln('');
         }
 

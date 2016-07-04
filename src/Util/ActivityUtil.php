@@ -52,7 +52,7 @@ abstract class ActivityUtil
                 $output->write($output->isDecorated() ? "\n\033[1A" : "\n");
 
                 // Display the new log output, with an indent.
-                $output->write(preg_replace('/^/m', '    ', $log));
+                $output->write(Util::indent($log));
 
                 // Display the progress bar again.
                 $bar->advance();
@@ -154,7 +154,7 @@ abstract class ActivityUtil
                     // If the activity failed, show the complete log.
                     $output->writeln("  Description: $description");
                     $output->writeln("  Log:");
-                    $output->writeln(preg_replace('/^/m', '    ', $activity->log));
+                    $output->writeln(Util::indent($activity->log));
                     break;
             }
         }

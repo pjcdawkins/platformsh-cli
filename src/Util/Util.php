@@ -57,4 +57,16 @@ class Util
         $ref = $value;
     }
 
+    /**
+     * Indent lines in a string.
+     *
+     * @param string $string
+     * @param int    $amount
+     */
+    public static function indent($string, $amount = 2)
+    {
+        $indent = str_repeat(' ', $amount);
+
+        return preg_replace('/^/m', $indent, $string);
+    }
 }
