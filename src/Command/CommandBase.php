@@ -599,6 +599,9 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
         } else {
             $project = $this->getCurrentProject();
             if (!$project) {
+                $project = $this->getShellProject();
+            }
+            if (!$project) {
                 throw new RootNotFoundException(
                     "Could not determine the current project."
                     . "\nSpecify it manually using --project or go to a project directory."
@@ -989,5 +992,25 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
     public function setRunningViaMulti($runningViaMulti = true)
     {
         $this->runningViaMulti = $runningViaMulti;
+    }
+
+    /**
+     * @return Project|false
+     */
+    public function getShellProject()
+    {
+        $this->debug('Loading shell session file');
+        $contents = self::$config->getShellTmp();
+        if (!$contents) {
+            return false;
+        }
+
+        if ($project = $this->api()->getProject($contents)) {
+            return $project;
+        }
+
+        $guzzleClient = $this->api()->getClient()->getConnector()->getClient();
+
+        return Project::get($contents, null, $guzzleClient);
     }
 }

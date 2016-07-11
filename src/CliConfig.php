@@ -4,6 +4,7 @@ namespace Platformsh\Cli;
 
 use Platformsh\Cli\Helper\FilesystemHelper;
 use Platformsh\Cli\Util\Util;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -16,6 +17,8 @@ class CliConfig
     protected $env = [];
 
     protected $userConfig = null;
+
+    protected $shellPid;
 
     /**
      * @param array|null  $env
@@ -196,5 +199,88 @@ class CliConfig
                 }
             }
         }
+    }
+
+    /**
+     * Get the process ID of the shell (the parent of the PHP process).
+     *
+     * @return int|false
+     */
+    protected function getShellPid()
+    {
+        if (!isset($this->shellPid)) {
+            $this->shellPid = function_exists('posix_getppid')
+                ? posix_getppid()
+                : false;
+        }
+
+        return $this->shellPid;
+    }
+
+    /**
+     * @return string|false
+     */
+    protected function getShellTmpFile()
+    {
+        if (!$pid = $this->getShellPid()) {
+            return false;
+        }
+
+        return sys_get_temp_dir() . '/psh-cli-' . $this->getUsername() . '/project.env-' . $pid;
+    }
+
+    /**
+     * @param string|null $content
+     *
+     * @return bool
+     *   True on success, false on failure.
+     */
+    public function putShellTmp($content)
+    {
+        if (!$filename = $this->getShellTmpFile()) {
+            return false;
+        }
+        $fs = new Filesystem();
+        if ($content === null) {
+            $fs->remove($filename);
+        }
+        else {
+            $fs->dumpFile($filename, $content);
+        }
+
+        return true;
+    }
+
+    /**
+     * @return string|false
+     */
+    public function getShellTmp()
+    {
+        $filename = $this->getShellTmpFile();
+        if (!$filename || !file_exists($filename)) {
+            return false;
+        }
+        $contents = file_get_contents($filename);
+
+        return $contents !== false ? trim($contents) : false;
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getUsername()
+    {
+        $name = null;
+        if (!$name = getenv("username")) { // Windows
+            if (!$name = getenv("USER")) {
+                // If USER not defined, use posix
+                if (function_exists('posix_getpwuid')) {
+                    $processUser = posix_getpwuid(posix_geteuid());
+                    $name = $processUser['name'];
+                }
+            }
+        }
+
+        return $name;
     }
 }

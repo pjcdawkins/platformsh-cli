@@ -146,6 +146,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Project\ProjectGetCommand();
         $commands[] = new Command\Project\ProjectListCommand();
         $commands[] = new Command\Project\ProjectInfoCommand();
+        $commands[] = new Command\Project\ProjectSetCommand();
         $commands[] = new Command\Self\SelfBuildCommand();
         $commands[] = new Command\Self\SelfInstallCommand();
         $commands[] = new Command\Self\SelfUpdateCommand();

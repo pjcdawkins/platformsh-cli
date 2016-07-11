@@ -239,9 +239,7 @@ class Api
     /**
      * Return the user's project with the given id.
      *
-     * @param string $id        The project ID, or a full URL to the project
-     *                          (this can be any API or web interface URL for
-     *                          the project).
+     * @param string $id        The project ID.
      * @param string $host      The project's hostname, if $id is just an ID.
      *                          If not provided, the hostname will be determined
      *                          from the user's projects list.
@@ -260,9 +258,10 @@ class Api
         if (!empty($host)) {
             $scheme = 'https';
             if (($pos = strpos($host, '//')) !== false) {
+                $host = parse_url($host, PHP_URL_HOST);
                 $scheme = parse_url($host, PHP_URL_SCHEME);
-                $host = substr($host, $pos + 2);
             }
+
             return $this->getClient()->getProjectDirect($id, $host, $scheme != 'http');
         }
 
