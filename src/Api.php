@@ -426,8 +426,8 @@ class Api
     public static function sortResources(array &$resources, $propertyPath)
     {
         uasort($resources, function (ApiResource $a, ApiResource $b) use ($propertyPath) {
-            $valueA = static::getNestedProperty($a, $propertyPath, false);
-            $valueB = static::getNestedProperty($b, $propertyPath, false);
+            $valueA = static::getNestedProperty($a, $propertyPath);
+            $valueB = static::getNestedProperty($b, $propertyPath);
 
             switch (gettype($valueA)) {
                 case 'string':

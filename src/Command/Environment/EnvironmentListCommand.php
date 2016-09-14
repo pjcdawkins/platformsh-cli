@@ -1,7 +1,9 @@
 <?php
 namespace Platformsh\Cli\Command\Environment;
 
+use Platformsh\Cli\Api;
 use Platformsh\Cli\Command\CommandBase;
+use Platformsh\Cli\Util\PropertyFormatter;
 use Platformsh\Cli\Util\Table;
 use Platformsh\Client\Model\Environment;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,6 +18,10 @@ class EnvironmentListCommand extends CommandBase
     /** @var Environment */
     protected $currentEnvironment;
     protected $mapping = [];
+    protected $properties = ['id', 'title', 'status'];
+
+    /** @var PropertyFormatter */
+    protected $propertyFormatter;
 
     /**
      * {@inheritdoc}
@@ -30,6 +36,7 @@ class EnvironmentListCommand extends CommandBase
             ->addOption('pipe', null, InputOption::VALUE_NONE, 'Output a simple list of environment IDs.')
             ->addOption('refresh', null, InputOption::VALUE_REQUIRED, 'Whether to refresh the list.', 1)
             ->addOption('sort', null, InputOption::VALUE_REQUIRED, 'A property to sort by', 'title')
+            ->addOption('properties', 'P', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'The properties to list', $this->properties)
             ->addOption('reverse', null, InputOption::VALUE_NONE, 'Sort in reverse (descending) order');
         Table::addFormatOption($this->getDefinition());
         $this->addProjectOption();
@@ -63,38 +70,49 @@ class EnvironmentListCommand extends CommandBase
      * Recursively build rows of the environment table.
      *
      * @param Environment[] $tree
-     * @param bool $indent
+     * @param bool $machineReadable
      * @param int $indentAmount
-     * @param bool $indicateCurrent
      *
      * @return array
      */
-    protected function buildEnvironmentRows($tree, $indent = true, $indicateCurrent = true, $indentAmount = 0)
+    protected function buildEnvironmentRows($tree, $machineReadable = false, $indentAmount = 0)
     {
         $rows = [];
         foreach ($tree as $environment) {
             $row = [];
 
-            $id = $environment->id;
-            if ($indent) {
-                $id = str_repeat('   ', $indentAmount) . $id;
-            }
-            if ($indicateCurrent && $this->currentEnvironment && $environment->id == $this->currentEnvironment->id) {
-                $id .= "<info>*</info>";
-            }
-            $row[] = $id;
-
-            if ($branch = array_search($environment->id, $this->mapping)) {
-                $row[] = sprintf('%s (%s)', $environment->title, $branch);
-            }
-            else {
-                $row[] = $environment->title;
+            foreach ($this->properties as $property) {
+                $row[$property] = $this->propertyFormatter->format(
+                    Api::getNestedProperty($environment, $property),
+                    $property
+                );
             }
 
-            $row[] = $this->formatEnvironmentStatus($environment->status);
+            if (isset($row['id'])) {
+                if (!$machineReadable) {
+                    $row['id'] = str_repeat('   ', $indentAmount) . $row['id'];
+                }
+                if (!$machineReadable && $this->currentEnvironment
+                    && $environment->id === $this->currentEnvironment->id) {
+                    $row['id'] .= "<info>*</info>";
+                }
+            }
+            if (isset($row['title']) && ($branch = array_search($environment->id, $this->mapping))) {
+                $row['title'] .= '(' . $branch . ')';
+            }
+            if (isset($row['status'])) {
+                $row['status'] = $this->formatEnvironmentStatus($row['status']);
+            }
 
             $rows[] = $row;
-            $rows = array_merge($rows, $this->buildEnvironmentRows($this->children[$environment->id], $indent, $indicateCurrent, $indentAmount + 1));
+            $rows = array_merge(
+                $rows,
+                $this->buildEnvironmentRows(
+                    $this->children[$environment->id],
+                    $machineReadable,
+                    $indentAmount + 1
+                )
+            );
         }
 
         return $rows;
@@ -117,6 +135,20 @@ class EnvironmentListCommand extends CommandBase
             });
         }
 
+        if (!count($environments)) {
+            $this->stdErr->writeln('No environment(s) found.');
+
+            return 1;
+        }
+
+        $this->properties = $input->getOption('properties');
+        if (count($this->properties) === 1
+            && isset($this->properties[0])
+            && strpos($this->properties[0], ',') !== false) {
+            $this->properties = explode(',', $this->properties[0]);
+        }
+        $this->propertyFormatter = new PropertyFormatter($input);
+
         if ($input->getOption('sort')) {
             $this->api()->sortResources($environments, $input->getOption('sort'));
         }
@@ -127,7 +159,7 @@ class EnvironmentListCommand extends CommandBase
         if ($input->getOption('pipe')) {
             $output->writeln(array_keys($environments));
 
-            return;
+            return 0;
         }
 
         $project = $this->getSelectedProject();
@@ -157,14 +189,28 @@ class EnvironmentListCommand extends CommandBase
             }
         }
 
-        $headers = ['ID', 'Name', 'Status'];
+        $headers = [];
+        foreach ($this->properties as $property) {
+            switch ($property) {
+                case 'id':
+                    $headers[] = strtoupper($property);
+                    break;
+
+                case 'title':
+                    $headers[] = ucfirst($property);
+                    break;
+
+                default:
+                    $headers[] = $property;
+            }
+        }
 
         $table = new Table($input, $output);
 
         if ($table->formatIsMachineReadable()) {
-            $table->render($this->buildEnvironmentRows($tree, false, false), $headers);
+            $table->render($this->buildEnvironmentRows($tree, true), $headers);
 
-            return;
+            return 0;
         }
 
         $this->stdErr->writeln("Your environments are: ");
@@ -172,7 +218,7 @@ class EnvironmentListCommand extends CommandBase
         $table->render($this->buildEnvironmentRows($tree), $headers);
 
         if (!$this->currentEnvironment) {
-            return;
+            return 0;
         }
 
         $this->stdErr->writeln("<info>*</info> - Indicates the current environment\n");
@@ -207,6 +253,8 @@ class EnvironmentListCommand extends CommandBase
                 "Sync the current environment by running <info>" . self::$config->get('application.executable') . " environment:synchronize</info>"
             );
         }
+
+        return 0;
     }
 
     /**
@@ -214,7 +262,8 @@ class EnvironmentListCommand extends CommandBase
      *
      * @return string
      */
-    protected function formatEnvironmentStatus($status) {
+    protected function formatEnvironmentStatus($status)
+    {
         if ($status == 'dirty') {
             $status = 'In progress';
         }
