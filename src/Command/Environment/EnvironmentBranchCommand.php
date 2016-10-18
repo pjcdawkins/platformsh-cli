@@ -146,6 +146,13 @@ class EnvironmentBranchCommand extends CommandBase
                 "The environment <info>$branchName</info> has been created.",
                 '<error>Branching failed</error>'
             );
+
+            if ($remoteSuccess && $projectRoot && isset($gitHelper)) {
+                $this->localProject->ensureGitRemote($projectRoot, $selectedProject->getGitUrl());
+                $gitHelper->setUpstream(
+                    self::$config->get('detection.git_remote_name') . '/' . $branchName
+                );
+            }
         }
 
         $this->api()->clearEnvironmentsCache($this->getSelectedProject()->id);
