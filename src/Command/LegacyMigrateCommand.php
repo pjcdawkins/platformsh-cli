@@ -48,7 +48,7 @@ EOF
 
         $cwd = getcwd();
 
-        /** @var \Platformsh\Cli\Helper\FilesystemHelper $fsHelper */
+        /** @var \Platformsh\Cli\Service\FilesystemHelper $fsHelper */
         $fsHelper = $this->getHelper('fs');
 
         $repositoryDir = $legacyRoot . '/repository';

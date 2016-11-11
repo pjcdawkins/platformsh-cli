@@ -114,7 +114,7 @@ class LocalBuildCommand extends CommandBase
     {
         $projectRoot = $this->getProjectRoot();
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
         $sourceDirOption = $input->getOption('source');
@@ -153,7 +153,7 @@ class LocalBuildCommand extends CommandBase
         }
 
         if ($destination) {
-            /** @var \Platformsh\Cli\Helper\FilesystemHelper $fsHelper */
+            /** @var \Platformsh\Cli\Service\FilesystemHelper $fsHelper */
             $fsHelper = $this->getHelper('fs');
             $destination = $fsHelper->makePathAbsolute($destination);
         }

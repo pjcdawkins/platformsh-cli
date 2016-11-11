@@ -2,8 +2,8 @@
 namespace Platformsh\Cli\Command\Environment;
 
 use Platformsh\Cli\Command\CommandBase;
-use Platformsh\Cli\Helper\GitHelper;
-use Platformsh\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Service\Git;
+use Platformsh\Cli\Service\Shell;
 use Platformsh\Cli\Util\ActivityUtil;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -112,7 +112,7 @@ class EnvironmentBranchCommand extends CommandBase
         $this->api()->clearEnvironmentsCache($selectedProject->id);
 
         if ($projectRoot) {
-            $gitHelper = new GitHelper(new ShellHelper($this->stdErr));
+            $gitHelper = new Git(new Shell($this->stdErr));
             $gitHelper->setDefaultRepositoryDir($projectRoot);
 
             // If the Git branch already exists locally, just check it out.

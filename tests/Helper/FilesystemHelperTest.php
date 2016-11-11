@@ -2,7 +2,7 @@
 
 namespace Platformsh\Cli\Tests;
 
-use Platformsh\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Service\FilesystemHelper;
 
 class FilesystemHelperTest extends \PHPUnit_Framework_TestCase
 {

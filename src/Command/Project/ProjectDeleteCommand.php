@@ -26,7 +26,7 @@ class ProjectDeleteCommand extends CommandBase
             return 1;
         }
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
         $confirmQuestionLines = [

@@ -37,7 +37,7 @@ class DbDumpCommand extends CommandBase
         if (!$input->getOption('stdout')) {
             if ($input->getOption('file')) {
                 $dumpFile = rtrim($input->getOption('file'), '/');
-                /** @var \Platformsh\Cli\Helper\FilesystemHelper $fsHelper */
+                /** @var \Platformsh\Cli\Service\FilesystemHelper $fsHelper */
                 $fsHelper = $this->getHelper('fs');
 
                 // Insert the timestamp into the filename.
@@ -73,7 +73,7 @@ class DbDumpCommand extends CommandBase
 
         if (isset($dumpFile)) {
             if (file_exists($dumpFile)) {
-                /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+                /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
                 $questionHelper = $this->getHelper('question');
                 if (!$questionHelper->confirm("File exists: <comment>$dumpFile</comment>. Overwrite?", false)) {
                     return 1;

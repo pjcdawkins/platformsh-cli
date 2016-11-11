@@ -3,8 +3,8 @@ namespace Platformsh\Cli\Command\Environment;
 
 use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\Exception\RootNotFoundException;
-use Platformsh\Cli\Helper\GitHelper;
-use Platformsh\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Service\Git;
+use Platformsh\Cli\Service\Shell;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -41,7 +41,7 @@ class EnvironmentSetRemoteCommand extends CommandBase
 
         $projectRoot = $this->getProjectRoot();
 
-        $gitHelper = new GitHelper(new ShellHelper($output));
+        $gitHelper = new Git(new Shell($output));
         $gitHelper->setDefaultRepositoryDir($projectRoot);
 
         $specifiedEnvironmentId = $input->getArgument('environment');

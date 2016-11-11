@@ -3,7 +3,7 @@ namespace Platformsh\Cli\SelfUpdate;
 
 use Platformsh\Cli\CliConfig;
 use Humbug\SelfUpdate\Updater;
-use Platformsh\Cli\Helper\QuestionHelper;
+use Platformsh\Cli\Service\QuestionHelper;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;

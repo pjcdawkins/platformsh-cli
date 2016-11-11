@@ -41,7 +41,7 @@ class SelfBuildCommand extends CommandBase
             return 1;
         }
 
-        /** @var \Platformsh\Cli\Helper\ShellHelper $shellHelper */
+        /** @var \Platformsh\Cli\Service\Shell $shellHelper */
         $shellHelper = $this->getHelper('shell');
         if (!$shellHelper->commandExists('box')) {
             $this->stdErr->writeln('Command not found: <error>box</error>');
@@ -58,7 +58,7 @@ class SelfBuildCommand extends CommandBase
 
         $boxConfig = [];
         if ($outputFilename) {
-            /** @var \Platformsh\Cli\Helper\FilesystemHelper $fsHelper */
+            /** @var \Platformsh\Cli\Service\FilesystemHelper $fsHelper */
             $fsHelper = $this->getHelper('fs');
             $boxConfig['output'] = $fsHelper->makePathAbsolute($outputFilename);
         }
@@ -75,7 +75,7 @@ class SelfBuildCommand extends CommandBase
 
         $phar = isset($boxConfig['output']) ? $boxConfig['output'] : CLI_ROOT . '/' . self::$config->get('application.phar');
         if (file_exists($phar)) {
-            /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
             $questionHelper = $this->getHelper('question');
             if (!$questionHelper->confirm("File exists: <comment>$phar</comment>. Overwrite?")) {
                 return 1;

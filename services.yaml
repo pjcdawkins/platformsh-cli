@@ -1,0 +1,24 @@
+services:
+    config:
+        class:     '\Platformsh\Cli\CliConfig'
+    api:
+        class:     '\Platformsh\Cli\Api'
+        arguments: ['@config']
+    helper.shell:
+        class:     '\Platformsh\Cli\Service\Shell'
+        arguments: ['@output']
+    helper.git:
+        class:     '\Platformsh\Cli\Service\Git'
+        arguments: ['@helper.shell']
+    helper.drush:
+        class:     '\Platformsh\Cli\Service\Drush'
+        arguments: ['@config', '@helper.shell']
+    helper.fs:
+        class:     '\Platformsh\Cli\Service\FilesystemHelper'
+        arguments: ['@input', '@output']
+    helper.question:
+        class:     '\Platformsh\Cli\Service\QuestionHelper'
+        arguments: ['@input', '@output']
+    local.project:
+        class:     '\Platformsh\Cli\Local\LocalProject'
+        arguments: ['@config']

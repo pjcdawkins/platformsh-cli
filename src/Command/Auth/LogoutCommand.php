@@ -51,7 +51,7 @@ class LogoutCommand extends CommandBase
         $sessionsDir = $this->getSessionsDir();
         if ($input->getOption('all')) {
             if (is_dir($sessionsDir)) {
-                /** @var \Platformsh\Cli\Helper\FilesystemHelper $fs */
+                /** @var \Platformsh\Cli\Service\FilesystemHelper $fs */
                 $fs = $this->getHelper('fs');
                 $fs->remove($sessionsDir);
                 $this->stdErr->writeln('All session files have been deleted.');

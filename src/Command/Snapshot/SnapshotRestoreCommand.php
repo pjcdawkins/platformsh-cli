@@ -69,7 +69,7 @@ class SnapshotRestoreCommand extends CommandBase
             return 1;
         }
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
         $name = $selectedActivity['payload']['backup_name'];
         $date = date('Y-m-d H:i', strtotime($selectedActivity['created_at']));

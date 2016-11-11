@@ -2,11 +2,11 @@
 namespace Platformsh\Cli;
 
 use Platformsh\Cli\Console\EventSubscriber;
-use Platformsh\Cli\Helper\DrushHelper;
-use Platformsh\Cli\Helper\FilesystemHelper;
-use Platformsh\Cli\Helper\GitHelper;
-use Platformsh\Cli\Helper\QuestionHelper;
-use Platformsh\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Service\Drush;
+use Platformsh\Cli\Service\FilesystemHelper;
+use Platformsh\Cli\Service\Git;
+use Platformsh\Cli\Service\QuestionHelper;
+use Platformsh\Cli\Service\Shell;
 use Symfony\Component\Console\Application as ParentApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\Helper\FormatterHelper;
@@ -61,21 +61,6 @@ class Application extends ParentApplication
             new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version'),
             new InputOption('--yes', '-y', InputOption::VALUE_NONE, 'Answer "yes" to all prompts; disable interaction'),
             new InputOption('--no', '-n', InputOption::VALUE_NONE, 'Answer "no" to all prompts'),
-        ]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getDefaultHelperSet()
-    {
-        return new HelperSet([
-            new FormatterHelper(),
-            new QuestionHelper(),
-            new FilesystemHelper(),
-            new ShellHelper(),
-            new DrushHelper($this->cliConfig),
-            new GitHelper(),
         ]);
     }
 

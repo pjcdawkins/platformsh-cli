@@ -23,9 +23,9 @@ class SshKeyAddCommand extends CommandBase
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
-        /** @var \Platformsh\Cli\Helper\ShellHelperInterface $shellHelper */
+        /** @var \Platformsh\Cli\Service\Shell $shellHelper */
         $shellHelper = $this->getHelper('shell');
 
         $publicKeyPath = $input->getArgument('path');

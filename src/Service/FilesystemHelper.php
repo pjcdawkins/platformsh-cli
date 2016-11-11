@@ -1,21 +1,18 @@
 <?php
 
-namespace Platformsh\Cli\Helper;
+namespace Platformsh\Cli\Service;
 
-use Platformsh\Cli\Console\OutputAwareInterface;
-use Symfony\Component\Console\Helper\Helper;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
-class FilesystemHelper extends Helper implements OutputAwareInterface
+class FilesystemHelper
 {
 
     protected $relative = false;
     protected $fs;
     protected $copyOnWindows = false;
 
-    /** @var ShellHelperInterface */
+    /** @var Shell */
     protected $shellHelper;
 
     public function getName()
@@ -24,23 +21,13 @@ class FilesystemHelper extends Helper implements OutputAwareInterface
     }
 
     /**
-     * @param ShellHelperInterface $shellHelper
-     * @param OutputInterface      $fs
+     * @param Shell|null      $shellHelper
+     * @param Filesystem|null $fs
      */
-    public function __construct(ShellHelperInterface $shellHelper = null, $fs = null)
+    public function __construct(Shell $shellHelper = null, $fs = null)
     {
-        $this->shellHelper = $shellHelper ?: new ShellHelper();
+        $this->shellHelper = $shellHelper ?: new Shell();
         $this->fs = $fs ?: new Filesystem();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        if ($this->shellHelper instanceof OutputAwareInterface) {
-            $this->shellHelper->setOutput($output);
-        }
     }
 
     /**

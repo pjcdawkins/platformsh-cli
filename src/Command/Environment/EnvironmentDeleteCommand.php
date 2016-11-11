@@ -126,7 +126,7 @@ EOF
             throw new RootNotFoundException();
         }
 
-        /** @var \Platformsh\Cli\Helper\GitHelper $gitHelper */
+        /** @var \Platformsh\Cli\Service\Git $gitHelper */
         $gitHelper = $this->getHelper('git');
         $gitHelper->setDefaultRepositoryDir($projectRoot);
         $this->localProject->ensureGitRemote($projectRoot, $this->getSelectedProject()->getGitUrl());

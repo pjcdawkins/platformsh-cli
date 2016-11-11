@@ -38,7 +38,7 @@ class TunnelCloseCommand extends TunnelCommandBase
             }
         }
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
         $error = false;

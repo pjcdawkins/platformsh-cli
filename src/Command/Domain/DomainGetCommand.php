@@ -1,7 +1,7 @@
 <?php
 namespace Platformsh\Cli\Command\Domain;
 
-use Platformsh\Cli\Helper\QuestionHelper;
+use Platformsh\Cli\Service\QuestionHelper;
 use Platformsh\Cli\Util\PropertyFormatter;
 use Platformsh\Cli\Util\Table;
 use Symfony\Component\Console\Input\InputArgument;

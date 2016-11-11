@@ -3,7 +3,7 @@ namespace Platformsh\Cli\Command\Db;
 
 use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\Exception\RootNotFoundException;
-use Platformsh\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Service\Shell;
 use Platformsh\Cli\Local\LocalApplication;
 use Platformsh\Cli\Util\RelationshipsUtil;
 use Platformsh\Cli\Util\Table;
@@ -77,7 +77,7 @@ class DbSizeCommand extends CommandBase
         $this->stdErr->write('Querying database <comment>' . $dbServiceName . '</comment> to estimate disk usage. ');
         $this->stdErr->writeln('This might take a while.');
 
-        /** @var ShellHelper $shellHelper */
+        /** @var Shell $shellHelper */
         $shellHelper = $this->getHelper('shell');
         $command = ['ssh'];
         $command[] = $sshUrl;

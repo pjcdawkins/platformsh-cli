@@ -3,8 +3,8 @@ namespace Platformsh\Cli\Command\Project;
 
 use Cocur\Slugify\Slugify;
 use Platformsh\Cli\Command\CommandBase;
-use Platformsh\Cli\Helper\GitHelper;
-use Platformsh\Cli\Helper\ShellHelper;
+use Platformsh\Cli\Service\Git;
+use Platformsh\Cli\Service\Shell;
 use Platformsh\Cli\Local\LocalBuild;
 use Platformsh\Cli\Local\Toolstack\Drupal;
 use Platformsh\Client\Model\Project;
@@ -103,7 +103,7 @@ class ProjectGetCommand extends CommandBase
         if (empty($directory)) {
             $slugify = new Slugify();
             $directory = $project->title ? $slugify->slugify($project->title) : $project->id;
-            /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
             $questionHelper = $this->getHelper('question');
             $directory = $questionHelper->askInput('Directory', $directory);
         }
@@ -129,7 +129,7 @@ class ProjectGetCommand extends CommandBase
         // Prepare to talk to the remote repository.
         $gitUrl = $project->getGitUrl();
 
-        $gitHelper = new GitHelper(new ShellHelper($this->stdErr));
+        $gitHelper = new Git(new Shell($this->stdErr));
         $gitHelper->ensureInstalled();
 
         // First check if the repo actually exists.

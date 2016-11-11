@@ -43,7 +43,7 @@ class UserDeleteCommand extends CommandBase
             return 1;
         }
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
         if (!$questionHelper->confirm("Are you sure you want to delete the user <info>$email</info>?")) {

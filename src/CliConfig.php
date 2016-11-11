@@ -2,7 +2,7 @@
 
 namespace Platformsh\Cli;
 
-use Platformsh\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Service\FilesystemHelper;
 use Platformsh\Cli\Util\Util;
 use Symfony\Component\Yaml\Yaml;
 

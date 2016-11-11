@@ -47,7 +47,7 @@ class ProjectCreateCommand extends CommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
         $options = $this->form->resolveOptions($input, $output, $questionHelper);

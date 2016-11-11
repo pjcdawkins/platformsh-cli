@@ -54,9 +54,9 @@ class EnvironmentLogCommand extends CommandBase implements CompletionAwareInterf
         }
         // Offer a choice of log files, if possible.
         else {
-            /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
             $questionHelper = $this->getHelper('question');
-            /** @var \Platformsh\Cli\Helper\ShellHelper $shellHelper */
+            /** @var \Platformsh\Cli\Service\Shell $shellHelper */
             $shellHelper = $this->getHelper('shell');
 
             $result = $shellHelper->execute(['ssh', $sshUrl, 'ls -1 /var/log/*.log']);

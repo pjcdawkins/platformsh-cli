@@ -2,8 +2,8 @@
 
 namespace Platformsh\Cli\Tests;
 
-use Platformsh\Cli\Helper\DrushHelper;
-use Platformsh\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Service\Drush;
+use Platformsh\Cli\Service\FilesystemHelper;
 use Platformsh\Client\Model\Environment;
 use Platformsh\Client\Model\Project;
 
@@ -11,7 +11,7 @@ class DrushHelperTest extends \PHPUnit_Framework_TestCase
 {
     use HasTempDirTrait;
 
-    /** @var DrushHelper */
+    /** @var Drush */
     protected $drushHelper;
 
     /** @var Project */
@@ -25,7 +25,7 @@ class DrushHelperTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->drushHelper = new DrushHelper();
+        $this->drushHelper = new Drush();
 
         // Set up a dummy project with a remote environment.
         $this->project = new Project([

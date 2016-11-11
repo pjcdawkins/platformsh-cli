@@ -48,7 +48,7 @@ class LoginCommand extends CommandBase
 
     protected function configureAccount(InputInterface $input, OutputInterface $output)
     {
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $helper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $helper */
         $helper = $this->getHelper('question');
 
         $question = new Question('Your email address: ');

@@ -2,7 +2,7 @@
 
 namespace Platformsh\Cli\Tests\Toolstack;
 
-use Platformsh\Cli\Helper\FilesystemHelper;
+use Platformsh\Cli\Service\FilesystemHelper;
 use Platformsh\Cli\Local\LocalBuild;
 
 class VanillaTest extends BaseToolstackTest

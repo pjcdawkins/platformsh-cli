@@ -48,7 +48,7 @@ class EnvironmentCheckoutCommand extends CommandBase
             }
         }
 
-        /** @var \Platformsh\Cli\Helper\GitHelper $gitHelper */
+        /** @var \Platformsh\Cli\Service\Git $gitHelper */
         $gitHelper = $this->getHelper('git');
         $gitHelper->setDefaultRepositoryDir($projectRoot);
 
@@ -128,7 +128,7 @@ class EnvironmentCheckoutCommand extends CommandBase
             return false;
         }
 
-        /** @var \Platformsh\Cli\Helper\QuestionHelper $helper */
+        /** @var \Platformsh\Cli\Service\QuestionHelper $helper */
         $helper = $this->getHelper('question');
 
         // If there's more than one choice, present the user with a list.

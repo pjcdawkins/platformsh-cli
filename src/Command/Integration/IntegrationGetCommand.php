@@ -37,7 +37,7 @@ class IntegrationGetCommand extends IntegrationCommandBase
         }
         elseif (!$id) {
             $integrations = $project->getIntegrations();
-            /** @var \Platformsh\Cli\Helper\QuestionHelper $questionHelper */
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
             $questionHelper = $this->getHelper('question');
             $choices = [];
             foreach ($integrations as $integration) {

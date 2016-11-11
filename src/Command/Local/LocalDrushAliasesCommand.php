@@ -3,7 +3,7 @@ namespace Platformsh\Cli\Command\Local;
 
 use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\Exception\RootNotFoundException;
-use Platformsh\Cli\Helper\DrushHelper;
+use Platformsh\Cli\Service\Drush;
 use Platformsh\Cli\Local\Toolstack\Drupal;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -58,7 +58,7 @@ class LocalDrushAliasesCommand extends CommandBase
 
         $homeDir = $this->getHomeDir();
 
-        /** @var DrushHelper $drushHelper */
+        /** @var Drush $drushHelper */
         $drushHelper = $this->getHelper('drush');
         $drushHelper->ensureInstalled();
         $drushHelper->setHomeDir($homeDir);
