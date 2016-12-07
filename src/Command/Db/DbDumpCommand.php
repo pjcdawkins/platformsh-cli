@@ -3,6 +3,7 @@ namespace Platformsh\Cli\Command\Db;
 
 use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\Util\RelationshipsUtil;
+use Platformsh\Cli\Util\SshUtil;
 use Platformsh\Client\Model\Environment;
 use Platformsh\Client\Model\Project;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,6 +19,7 @@ class DbDumpCommand extends CommandBase
             ->setAliases(['sql-dump'])
             ->setDescription('Create a local dump of the remote database');
         RelationshipsUtil::configureInput($this->getDefinition());
+        SshUtil::configureInput($this->getDefinition());
         $this->addOption('file', 'f', InputOption::VALUE_REQUIRED, 'A filename where the dump should be saved. Defaults to "<project ID>--<environment ID>--dump.sql" in the project root')
             ->addOption('timestamp', 't', InputOption::VALUE_NONE, 'Add a timestamp to the dump filename')
             ->addOption('stdout', null, InputOption::VALUE_NONE, 'Output to STDOUT instead of a file');
@@ -78,8 +80,12 @@ class DbDumpCommand extends CommandBase
             $this->stdErr->writeln("Creating SQL dump file: <info>$dumpFile</info>");
         }
 
-        $util = new RelationshipsUtil($this->stdErr);
-        $database = $util->chooseDatabase($sshUrl, $input);
+        $sshUtil = new SshUtil($input, $output);
+
+        $relationshipsUtil = new RelationshipsUtil($this->stdErr);
+        $relationshipsUtil->setSshUtil($sshUtil);
+
+        $database = $relationshipsUtil->chooseDatabase($sshUrl, $input);
         if (empty($database)) {
             return 1;
         }
@@ -100,7 +106,8 @@ class DbDumpCommand extends CommandBase
 
         set_time_limit(0);
 
-        $command = 'ssh -C ' . escapeshellarg($sshUrl)
+        $command = $sshUtil->getSshCommand()
+            . ' -C ' . escapeshellarg($sshUrl)
             . ' ' . escapeshellarg($dumpCommand);
         if (isset($dumpFile)) {
             $command .= ' > ' . escapeshellarg($dumpFile);
