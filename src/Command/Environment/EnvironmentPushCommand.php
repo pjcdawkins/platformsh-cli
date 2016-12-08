@@ -68,6 +68,9 @@ class EnvironmentPushCommand extends CommandBase
         }
 
         $sshOptions = [];
+
+        $sshOptions[] = "-o 'SendEnv TERM'";
+
         if ($input->getOption('no-wait')) {
             $sshOptions[] = "-o 'SendEnv PLATFORMSH_PUSH_NO_WAIT'";
             $command = 'PLATFORMSH_PUSH_NO_WAIT=1 ' . $command;
