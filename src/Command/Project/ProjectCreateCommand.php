@@ -89,8 +89,9 @@ class ProjectCreateCommand extends CommandBase
         ));
 
         $bot = new Bot($this->stdErr);
-        $start = time();
-        while ($subscription->isPending() && time() - $start < 300) {
+        for ($timedOut = false, $start = time();
+             $subscription->isPending() && !$timedOut;
+             $timedOut = time() - $start > 600) {
             $bot->render();
             if (!isset($lastCheck) || time() - $lastCheck >= 2) {
                 try {
@@ -98,17 +99,22 @@ class ProjectCreateCommand extends CommandBase
                     $lastCheck = time();
                 } catch (ConnectException $e) {
                     if (strpos($e->getMessage(), 'timed out') !== false) {
-                        $this->stdErr->writeln('<warning>' . $e->getMessage() . '</warning>');
+                        $this->debug($e->getMessage());
                     } else {
                         throw $e;
                     }
                 }
             }
         }
-        $this->stdErr->writeln("");
+        $this->stdErr->writeln('');
 
         if (!$subscription->isActive()) {
-            $this->stdErr->writeln("<error>The project failed to activate</error>");
+            if ($timedOut) {
+                $this->stdErr->writeln('<error>The project failed to activate on time</error>');
+                $this->stdErr->writeln('View your active projects at: ' . $this->config()->get('service.accounts_url'));
+            } else {
+                $this->stdErr->writeln('<error>The project failed to activate</error>');
+            }
             return 1;
         }
 
