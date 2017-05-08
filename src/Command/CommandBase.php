@@ -8,11 +8,13 @@ use Platformsh\Cli\Exception\ProjectNotFoundException;
 use Platformsh\Cli\Exception\RootNotFoundException;
 use Platformsh\Cli\Local\LocalApplication;
 use Platformsh\Cli\Local\BuildFlavor\Drupal;
+use Platformsh\Cli\Service\Filesystem;
 use Platformsh\Client\Model\Environment;
 use Platformsh\Client\Model\Project;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException as ConsoleInvalidArgumentException;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -129,6 +131,8 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
         }
 
         $this->promptLegacyMigrate();
+
+        $this->mergeCommandDefaults($input);
     }
 
     /**
@@ -790,6 +794,57 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
         $questionHelper = $this->getService('question_helper');
 
         return $questionHelper->choose($projectList, $text);
+    }
+
+    /**
+     * Find user-defined command defaults and merge them with the input.
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     */
+    protected function mergeCommandDefaults(InputInterface $input)
+    {
+        $thisCommandName = $this->getName();
+        $defaults = [];
+
+        // Find defaults in user config.
+        $userConfig = $this->config()->getUserConfig();
+        if (isset($userConfig['command-defaults'][$thisCommandName])) {
+            $defaults = array_merge($defaults, $userConfig['command-defaults'][$thisCommandName]);
+        }
+
+        // Find defaults in the local project config.
+        /** @var \Platformsh\Cli\Local\LocalProject $localProject */
+        $localProject = $this->getService('local.project');
+        $projectConfig = $localProject->getProjectConfig();
+        if (isset($projectConfig) && isset($projectConfig['command-defaults'][$thisCommandName])) {
+            $defaults = array_merge($defaults, $projectConfig['command-defaults'][$thisCommandName]);
+        }
+
+        // If the input is not already overridden by the user (i.e. if it is the
+        // same as the programmed default), then it can be overridden by the
+        //configured default.
+        $definition = $this->getDefinition();
+        $optionDefaults = $definition->getOptionDefaults();
+        $argumentDefaults = $definition->getArgumentDefaults();
+        foreach ($defaults as $argument => $value) {
+            $overridden = false;
+            if (array_key_exists($argument, $argumentDefaults)) {
+                if ($input->getArgument($argument) === $argumentDefaults[$argument] && $argumentDefaults[$argument] !== $value) {
+                    $input->setArgument($argument, $value);
+                    $overridden = true;
+                }
+            } elseif (array_key_exists($argument, $optionDefaults)) {
+                if ($input->getOption($argument) === $optionDefaults[$argument] && $optionDefaults[$argument] !== $value) {
+                    $input->setOption($argument, $value);
+                    $overridden = true;
+                }
+            } else {
+                throw new InvalidArgumentException(sprintf('Invalid configured default: %s', $argument));
+            }
+            if ($overridden) {
+                $this->debug(sprintf('Set configured default for "%s" to: %s', $argument, json_encode($value)));
+            }
+        }
     }
 
     /**
