@@ -128,6 +128,14 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
             error_reporting(E_PARSE | E_ERROR);
         }
 
+        if ($this->detectPlatformshEnvironment() && $input->hasOption('no-wait')) {
+            $this->stdErr->writeln(
+                sprintf('Detected %s environment: setting <comment>--no-wait</comment> automatically', $this->config()->get('service.name')),
+                OutputInterface::VERBOSITY_VERBOSE
+            );
+            $input->setOption('no-wait', true);
+        }
+
         $this->promptLegacyMigrate();
     }
 
@@ -1135,5 +1143,16 @@ abstract class CommandBase extends Command implements CanHideInListInterface, Mu
     protected function isTerminal($descriptor)
     {
         return !function_exists('posix_isatty') || posix_isatty($descriptor);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function detectPlatformshEnvironment()
+    {
+        $envPrefix = $this->config()->get('service.env_prefix');
+        $project = getenv($envPrefix . 'PROJECT');
+
+        return !empty($project);
     }
 }
