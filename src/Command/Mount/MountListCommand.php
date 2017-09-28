@@ -10,6 +10,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class MountListCommand extends CommandBase
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -24,12 +27,7 @@ class MountListCommand extends CommandBase
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int|null|void
-     * @throws \Platformsh\Client\Exception\OperationUnavailableException
-     * @throws \Platformsh\Client\Exception\EnvironmentStateException
+     * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -46,12 +44,15 @@ class MountListCommand extends CommandBase
 
         $mounts = $appConfig['mounts'];
         if (empty($mounts)) {
-            $output->writeln(sprintf('The app "%s" doesn\'t define any mounts.', $appConfig['name']));
-            return;
+            $this->stdErr->writeln(sprintf('The app "%s" doesn\'t define any mounts.', $appConfig['name']));
+
+            return 0;
         }
 
         /** @var \Platformsh\Cli\Service\PropertyFormatter $formatter */
         $formatter = $this->getService('property_formatter');
         $formatter->displayData($output, $appConfig, 'mounts');
+
+        return 0;
     }
 }

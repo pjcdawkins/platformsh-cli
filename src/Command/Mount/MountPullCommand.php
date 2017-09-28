@@ -11,6 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class MountPullCommand extends CommandBase
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -24,13 +27,7 @@ class MountPullCommand extends CommandBase
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int|null|void
-     * @throws \RuntimeException
-     * @throws \Platformsh\Client\Exception\OperationUnavailableException
-     * @throws \Platformsh\Client\Exception\EnvironmentStateException
+     * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -47,21 +44,24 @@ class MountPullCommand extends CommandBase
 
         $mounts = $appConfig['mounts'];
         if (empty($mounts)) {
-            $output->writeln(sprintf('The app "%s" doesn\'t define any mounts.', $appConfig['name']));
-            return;
+            $this->stdErr->writeln(sprintf('The app "%s" doesn\'t define any mounts.', $appConfig['name']));
+
+            return 1;
         }
 
         $app = LocalApplication::getApplication($input->getOption('app'), $this->getProjectRoot(), $this->config());
         $appRoot = $app->getRoot();
 
         $path = $this->selectMount($mounts);
-        $this->runSync($path, $sshUrl, $appRoot);
+        $success = $this->runSync($path, $sshUrl, $appRoot);
+
+        return $success ? 0 : 1;
     }
 
     /**
      * Find the mount the user wants to use.
      *
-     * @param array $mounts
+     * @param array $mounts The mounts, as defined in the application config.
      *
      * @return null|string The path of the mount or null.
      * @throws \RuntimeException
@@ -83,11 +83,11 @@ class MountPullCommand extends CommandBase
     /**
      * Pull down the contents of the chosen mount to the correct path
      *
-     * @param $path
-     * @param $sshUrl
-     * @param $appRoot
+     * @param string $path    The path of the mount.
+     * @param string $sshUrl  The SSH URL.
+     * @param string $appRoot The local application root.
      *
-     * @return bool
+     * @return bool False on failure, true otherwise.
      */
     private function runSync($path, $sshUrl, $appRoot)
     {
@@ -103,9 +103,11 @@ class MountPullCommand extends CommandBase
         if ($exitCode === 0) {
             $this->stdErr->writeln('The download completed successfully.', OutputInterface::OUTPUT_NORMAL);
             $this->stdErr->writeln(sprintf('Time: %ss', number_format(microtime(true) - $start, 2)), OutputInterface::VERBOSITY_VERBOSE);
+
             return true;
         }
         $this->stdErr->writeln('The download failed. Try running the command with -vvv to gain more insight.', OutputInterface::OUTPUT_NORMAL);
+
         return false;
     }
 }
