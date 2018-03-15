@@ -17,7 +17,8 @@ class SshKeyAddCommand extends CommandBase
             ->setName('ssh-key:add')
             ->setDescription('Add a new SSH key')
             ->addArgument('path', InputArgument::OPTIONAL, 'The path to an existing SSH public key')
-            ->addOption('name', null, InputOption::VALUE_REQUIRED, 'A name to identify the key');
+            ->addOption('name', null, InputOption::VALUE_REQUIRED, 'A name to identify the key')
+            ->addOption('new', null, InputOption::VALUE_NONE, 'Generate a new key');
         $this->addExample('Add an existing public key', '~/.ssh/id_rsa.pub');
     }
 
@@ -35,31 +36,22 @@ class SshKeyAddCommand extends CommandBase
             $defaultKeyPath = $fs->getHomeDirectory() . '/.ssh/' . self::DEFAULT_BASENAME;
             $defaultPublicKeyPath = $defaultKeyPath . '.pub';
 
-            // Look for an existing local key.
-            if (file_exists($defaultPublicKeyPath)
+            if ($input->getOption('new')) {
+                if (!$questionHelper->confirm('Are you sure you want to generate a new SSH key?')) {
+                    return 1;
+                }
+                $publicKeyPath = $this->generateNewKey();
+            } elseif (file_exists($defaultPublicKeyPath)
                 && $questionHelper->confirm(
                     'Use existing local key <info>' . basename($defaultPublicKeyPath) . '</info>?'
                 )) {
                 $publicKeyPath = $defaultPublicKeyPath;
-            } elseif ($shellHelper->commandExists('ssh-keygen')
-                && $questionHelper->confirm('Generate a new key?')) {
-                // Offer to generate a key.
-                $newKeyPath = $this->getNewKeyPath();
-                $args = ['ssh-keygen', '-t', 'rsa', '-f', $newKeyPath, '-N', ''];
-                $shellHelper->execute($args, null, true);
-                $publicKeyPath = $newKeyPath . '.pub';
-                $this->stdErr->writeln("Generated a new key: $publicKeyPath");
-
-                // An SSH agent is required if the key's filename is unusual.
-                if (!in_array(basename($newKeyPath), ['id_rsa', 'id_dsa'])) {
-                    $this->stdErr->writeln('Add this key to an SSH agent with:');
-                    $this->stdErr->writeln('    eval $(ssh-agent)');
-                    $this->stdErr->writeln('    ssh-add ' . escapeshellarg($newKeyPath));
-                }
-            } else {
-                $this->stdErr->writeln("<error>You must specify the path to a public SSH key</error>");
-                return 1;
+            } elseif ($questionHelper->confirm('Generate a new key?')) {
+                $publicKeyPath = $this->generateNewKey();
             }
+        } elseif ($input->getOption('new')) {
+            $this->stdErr->writeln('You cannot provide a key path and use the --new option at the same time.');
+            return 1;
         }
 
         if (!file_exists($publicKeyPath)) {
@@ -133,6 +125,38 @@ class SshKeyAddCommand extends CommandBase
         ));
 
         return 0;
+    }
+
+    /**
+     * Generate a new SSH key.
+     *
+     * @throws \Exception on failure
+     *
+     * @return string
+     *     The new public key path.
+     */
+    protected function generateNewKey()
+    {
+        /** @var \Platformsh\Cli\Service\Shell $shellHelper */
+        $shellHelper = $this->getService('shell');
+        if (!$shellHelper->commandExists('ssh-keygen')) {
+            throw new \RuntimeException('Command not found: ssh-keygen');
+        }
+
+        $newKeyPath = $this->getNewKeyPath();
+        $args = ['ssh-keygen', '-t', 'rsa', '-f', $newKeyPath, '-N', ''];
+        $shellHelper->execute($args, null, true);
+        $publicKeyPath = $newKeyPath . '.pub';
+        $this->stdErr->writeln("Generated a new key: $publicKeyPath");
+
+        // An SSH agent is required if the key's filename is unusual.
+        if (!in_array(basename($newKeyPath), ['id_rsa', 'id_dsa'])) {
+            $this->stdErr->writeln('Add this key to an SSH agent with:');
+            $this->stdErr->writeln('    eval $(ssh-agent)');
+            $this->stdErr->writeln('    ssh-add ' . escapeshellarg($newKeyPath));
+        }
+
+        return $publicKeyPath;
     }
 
     /**
