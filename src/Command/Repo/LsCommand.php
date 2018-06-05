@@ -41,6 +41,21 @@ class LsCommand extends CommandBase
                 $e->getMessage(),
                 $e->getPath()
             ));
+
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
+            $questionHelper = $this->getService('question_helper');
+            if ($input->isInteractive()
+                && $input->getArgument('path')
+                && $questionHelper->confirm('Do you want to read the file contents with <info>repo:cat</info>?')) {
+                $this->stdErr->writeln('');
+
+                return $this->runOtherCommand('repo:cat', [
+                    'path' => $input->getArgument('path'),
+                    '--project' => $this->getSelectedProject()->id,
+                    '--environment' => $this->getSelectedEnvironment()->id
+                ]);
+            }
+
             $this->stdErr->writeln(sprintf('To read a file, run: <comment>%s repo:cat [path]</comment>', $this->config()->get('application.executable')));
 
             return 3;

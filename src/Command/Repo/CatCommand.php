@@ -40,8 +40,23 @@ class CatCommand extends CommandBase
             $this->stdErr->writeln(sprintf(
                 '%s: <error>%s</error>',
                 $e->getMessage(),
-                $e->getPath()
+                $e->getPath() ?: '/'
             ));
+
+            /** @var \Platformsh\Cli\Service\QuestionHelper $questionHelper */
+            $questionHelper = $this->getService('question_helper');
+            if ($input->isInteractive()
+                && $input->getArgument('path')
+                && $questionHelper->confirm('Do you want to list directory contents with <info>repo:ls</info>?')) {
+                $this->stdErr->writeln('');
+
+                return $this->runOtherCommand('repo:ls', [
+                    'path' => $input->getArgument('path'),
+                    '--project' => $this->getSelectedProject()->id,
+                    '--environment' => $this->getSelectedEnvironment()->id
+                ]);
+            }
+
             $this->stdErr->writeln(sprintf('To list directory contents, run: <comment>%s repo:ls [path]</comment>', $this->config()->get('application.executable')));
 
             return 3;
