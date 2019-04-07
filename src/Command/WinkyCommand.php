@@ -3,7 +3,6 @@
 namespace Platformsh\Cli\Command;
 
 use Platformsh\Cli\Console\Winky;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -19,7 +18,6 @@ class WinkyCommand extends CommandBase
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->getFormatter()->setStyle('winky-pink', new OutputFormatterStyle());
         $winky = new Winky($output, $this->config()->get('service.name'));
 
         if (!$output->isDecorated()) {
