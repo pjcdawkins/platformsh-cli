@@ -48,18 +48,12 @@ class Winky extends Animation
             return "\n" . preg_replace('/^/m', $indent, $source) . $signature . "\n";
         }, $sources);
 
-        // Build the list of frames.
         $frames = [];
-        for ($i = 1; $i <= 16; $i++) {
-            if ($i === 8) {
-                $frames[] = $sources['wink'];
-            } elseif ($i === 16) {
-                $frames[] = $sources['twitch'];
-            } else {
-                $frames[] = $sources['normal'];
-            }
-        }
+        $frames[] = new AnimationFrame($sources['normal'], 1200000);
+        $frames[] = new AnimationFrame($sources['wink'], 200000);
+        $frames[] = new AnimationFrame($sources['normal'], 1200000);
+        $frames[] = new AnimationFrame($sources['twitch'], 150000);
 
-        parent::__construct($output, $frames, 180000);
+        parent::__construct($output, $frames);
     }
 }
