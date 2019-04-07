@@ -19,6 +19,9 @@ class Winky extends Animation
         $sources['wink'] = file_get_contents($dir . '/wink');
         $sources['twitch'] = file_get_contents($dir . '/twitch');
 
+        list($firstLine,) = explode("\n", trim($sources['normal']), 2);
+        $width = mb_strlen($firstLine);
+
         // Replace Unicode characters with ANSI background colors.
         if ($output->isDecorated()) {
             foreach ($sources as &$source) {
@@ -38,7 +41,7 @@ class Winky extends Animation
         // Add the indent and signature.
         $indent = '      ';
         if (strlen($signature) > 0) {
-            $signatureIndent = str_repeat(' ', strlen($indent) + 9 - floor(strlen($signature) / 2));
+            $signatureIndent = str_repeat(' ', strlen($indent) + floor($width / 2) - floor(strlen($signature) / 2));
             $signature = "\n" . $signatureIndent . $signature;
         }
         $sources = array_map(function ($source) use ($indent, $signature) {
