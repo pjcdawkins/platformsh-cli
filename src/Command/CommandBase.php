@@ -772,7 +772,12 @@ abstract class CommandBase extends Command implements MultiAwareInterface
         if ($environmentId !== null) {
             $environment = $this->api()->getEnvironment($environmentId, $this->project, null, true);
             if (!$environment) {
-                throw new ConsoleInvalidArgumentException('Specified environment not found: ' . $environmentId);
+                if (isset($this->output) && isset($this->input) && $this->input->isInteractive()) {
+                    $this->stdErr->writeln('Specified environment not found: <error>' . $environmentId . '</error>');
+                    $environment = $this->offerEnvironmentChoice($this->api()->getEnvironments($this->project), 'Select another environment');
+                } else {
+                    throw new ConsoleInvalidArgumentException('Specified environment not found: ' . $environmentId);
+                }
             }
 
             $this->environment = $environment;
@@ -1044,10 +1049,11 @@ abstract class CommandBase extends Command implements MultiAwareInterface
      * Offers a choice of environments.
      *
      * @param Environment[] $environments
+     * @param string        $questionText
      *
      * @return Environment
      */
-    protected final function offerEnvironmentChoice(array $environments)
+    protected final function offerEnvironmentChoice(array $environments, $questionText = 'Select an environment')
     {
         if (!isset($this->input) || !isset($this->output) || !$this->input->isInteractive()) {
             throw new \BadMethodCallException('Not interactive: an environment choice cannot be offered.');
@@ -1061,7 +1067,7 @@ abstract class CommandBase extends Command implements MultiAwareInterface
         $ids = array_keys($environments);
         sort($ids, SORT_NATURAL | SORT_FLAG_CASE);
 
-        $id = $questionHelper->askInput('Environment ID', $default, array_keys($environments), function ($value) use ($environments) {
+        $id = $questionHelper->askInput($questionText, $default, array_keys($environments), function ($value) use ($environments) {
             if (!isset($environments[$value])) {
                 throw new \RuntimeException('Environment not found: ' . $value);
             }
