@@ -555,7 +555,17 @@ class Api
     public static function getNestedProperty(ApiResource $resource, $propertyPath, $lazyLoad = true)
     {
         if (!strpos($propertyPath, '.')) {
-            return $resource->getProperty($propertyPath, true, $lazyLoad);
+            try {
+                return $resource->getProperty($propertyPath, true, $lazyLoad);
+            } catch (\InvalidArgumentException $e) {
+                $message = 'Property not found: ' . $propertyPath;
+                $propertyNames = $resource->getPropertyNames();
+                if (count($propertyNames) && count($propertyNames) < 50) {
+                    natcasesort($propertyNames);
+                    $message .= ". \n\nAvailable properties: " . implode(', ', $propertyNames) . '.';
+                }
+                throw new \InvalidArgumentException($message);
+            }
         }
 
         $parents = explode('.', $propertyPath);
