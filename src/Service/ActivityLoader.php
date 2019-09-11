@@ -43,10 +43,11 @@ class ActivityLoader
      * @param int         $limit
      * @param string|null $type
      * @param int|null    $startsAt
+     * @param bool        $reverse
      *
      * @return \Platformsh\Client\Model\Activity[]
      */
-    public function load(Resource $apiResource, $limit, $type, $startsAt)
+    public function load(Resource $apiResource, $limit, $type, $startsAt, $reverse = false)
     {
         /** @var \Platformsh\Client\Model\Environment|\Platformsh\Client\Model\Project $apiResource */
         $activities = $apiResource->getActivities($limit, $type, $startsAt);
@@ -68,6 +69,9 @@ class ActivityLoader
             $progress->setProgress(count($activities));
         }
         $progress->clear();
+        if ($reverse) {
+            $activities = array_reverse($activities);
+        }
 
         return $activities;
     }

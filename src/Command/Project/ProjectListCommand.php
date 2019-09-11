@@ -125,7 +125,7 @@ class ProjectListCommand extends CommandBase
         $this->stdErr->writeln([
             '',
             'Get a project by running: <info>' . $commandName . ' get [id]</info>',
-            "List a project's environments by running: <info>" . $commandName . ' environments -p [id]</info>',
+            "List a project's environments by running: <info>" . $commandName . ' env -p [id]</info>',
         ]);
 
         return 0;

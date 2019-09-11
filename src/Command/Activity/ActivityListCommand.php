@@ -24,6 +24,7 @@ class ActivityListCommand extends CommandBase
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit the number of results displayed', 10)
             ->addOption('start', null, InputOption::VALUE_REQUIRED, 'Only activities created before this date will be listed')
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Check activities on all environments')
+            ->addOption('reverse', 'r', InputOption::VALUE_NONE, 'Reverse the sort order')
             ->setDescription('Get a list of activities for an environment or project');
         Table::configureInput($this->getDefinition());
         PropertyFormatter::configureInput($this->getDefinition());
@@ -61,7 +62,7 @@ class ActivityListCommand extends CommandBase
 
         /** @var \Platformsh\Cli\Service\ActivityLoader $loader */
         $loader = $this->getService('activity_loader');
-        $activities = $loader->load($apiResource, $limit, $type, $startsAt);
+        $activities = $loader->load($apiResource, $limit, $type, $startsAt, $input->getOption('reverse'));
         if (!$activities) {
             $this->stdErr->writeln('No activities found');
 
@@ -121,7 +122,7 @@ class ActivityListCommand extends CommandBase
                 $this->stdErr->writeln(sprintf(
                     'More activities may be available.'
                     . ' To display older activities, increase <info>--limit</info> above %d, or set <info>--start</info> to a date in the past.'
-                    . ' For more information, run: <info>%s activity:list -h</info>',
+                    . ' For more information, run: <info>%s act -h</info>',
                     $max,
                     $executable
                 ));

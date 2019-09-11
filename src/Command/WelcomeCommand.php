@@ -2,6 +2,8 @@
 
 namespace Platformsh\Cli\Command;
 
+use Platformsh\Cli\Service\ActivityMonitor;
+use Platformsh\Client\Model\Environment;
 use Platformsh\Client\Model\Project;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -24,6 +26,7 @@ class WelcomeCommand extends CommandBase
 
         $envPrefix = $this->config()->get('service.env_prefix');
         $onContainer = getenv($envPrefix . 'PROJECT') && getenv($envPrefix . 'BRANCH');
+        $executable = $this->config()->get('application.executable');
 
         if ($project = $this->getCurrentProject()) {
             $this->welcomeForLocalProjectDir($project);
@@ -31,15 +34,13 @@ class WelcomeCommand extends CommandBase
             $this->welcomeOnContainer();
         } else {
             $this->defaultWelcome();
+
+            if ($this->api()->isLoggedIn()) {
+                $this->stdErr->writeln("Manage your SSH keys by running <info>$executable ssh-keys</info>");
+            }
         }
 
-        $executable = $this->config()->get('application.executable');
-
-        if ($this->api()->isLoggedIn()) {
-            $this->stdErr->writeln("Manage your SSH keys by running <info>$executable ssh-keys</info>\n");
-        }
-
-        $this->stdErr->writeln("To view all commands, run: <info>$executable list</info>");
+        $this->stdErr->writeln("\nTo view all commands, run: <info>$executable list</info>");
     }
 
     /**
@@ -59,18 +60,75 @@ class WelcomeCommand extends CommandBase
      */
     private function welcomeForLocalProjectDir(Project $project)
     {
-        $projectUri = $project->getLink('#ui');
-        $this->stdErr->writeln("Project title: <info>{$project->title}</info>");
-        $this->stdErr->writeln("Project ID: <info>{$project->id}</info>");
-        $this->stdErr->writeln("Project dashboard: <info>$projectUri</info>\n");
+        $this->stdErr->writeln(sprintf('Project: %s', $this->api()->getProjectLabel($project)));
 
-        // Show the environments.
-        $this->runOtherCommand('environments', [
-            '--refresh' => 0,
-            '--project' => $project->id,
-        ]);
+        if ($environment = $this->getCurrentEnvironment($project)) {
+            $this->welcomeForCurrentEnvironment($project, $environment);
+        } else {
+            $this->stdErr->writeln(sprintf("Dashboard: <info>%s</info>", $project->getLink('#ui')));
+
+            // Show the environments.
+            $this->runOtherCommand('environments', [
+                '--refresh' => 0,
+                '--project' => $project->id,
+            ]);
+
+            $this->stdErr->writeln('');
+        }
         $executable = $this->config()->get('application.executable');
-        $this->stdErr->writeln("\nYou can list other projects by running <info>$executable projects</info>\n");
+        $this->stdErr->writeln("List other projects by running <info>$executable pro</info>");
+    }
+
+    /**
+     * Display welcome when a current environment is selected.
+     *
+     * @param Project $project
+     * @param Environment $environment
+     */
+    private function welcomeForCurrentEnvironment(Project $project, Environment $environment)
+    {
+        $url = $project->getLink('#ui');
+        // Console links lack the /environments path component.
+        if ($this->config()->has('detection.console_domain') && parse_url($url, PHP_URL_HOST) === $this->config()->get('detection.console_domain')) {
+            $url .= '/' . rawurlencode($environment->id);
+        } else {
+            $url .= '/environments/' . rawurlencode($environment->id);
+        }
+
+        $this->stdErr->writeln(sprintf('Current environment: %s', $this->api()->getEnvironmentLabel($environment)));
+        $this->stdErr->writeln(sprintf('Dashboard: <info>%s</info>', $url));
+        $this->stdErr->writeln('');
+
+        /** @var \Platformsh\Cli\Service\ActivityLoader $loader */
+        $loader = $this->getService('activity_loader');
+        $activities = $loader->load($environment, 5, null, null, true);
+        $executable = $this->config()->get('application.executable');
+        if ($activities) {
+            /** @var \Platformsh\Cli\Service\Table $table */
+            $table = $this->getService('table');
+            /** @var \Platformsh\Cli\Service\PropertyFormatter $formatter */
+            $formatter = $this->getService('property_formatter');
+
+            $headers = ['Date & time', 'Description', 'State'];
+
+            $this->stdErr->writeln(sprintf('Recent activities, in ascending order:'));
+
+            $rows = [];
+            foreach ($activities as $activity) {
+                $date = $activity['updated_at'] ? $activity['updated_at'] : $activity['created_at'];
+                $rows[] = [
+                    $formatter->format($date, 'updated_at'),
+                    ActivityMonitor::getFormattedDescription($activity, !$table->formatIsMachineReadable()),
+                    $activity->isComplete() ? ActivityMonitor::formatResult($activity->result) : ActivityMonitor::formatState($activity->state),
+                ];
+            }
+
+            $table->render($rows, $headers);
+
+            $this->stdErr->writeln("\nList other activities by running <info>$executable act</info>");
+        }
+
+        $this->stdErr->writeln("List other environments by running <info>$executable env</info>");
     }
 
     /**
