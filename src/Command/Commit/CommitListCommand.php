@@ -28,7 +28,8 @@ class CommitListCommand extends CommandBase
             ->setAliases(['commits'])
             ->setDescription('List commits')
             ->addArgument('commit', InputOption::VALUE_REQUIRED, 'The starting Git commit SHA. ' . GitDataApi::COMMIT_SYNTAX_HELP)
-            ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'The number of commits to display.', 10);
+            ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'The number of commits to display.', 10)
+            ->addOption('no-merges', null, InputOption::VALUE_NONE, 'Do not display commits with more than one parent');
         $this->addProjectOption();
         $this->addEnvironmentOption();
 
@@ -73,7 +74,7 @@ class CommitListCommand extends CommandBase
             ));
         }
 
-        $commits = $this->loadCommitList($environment, $startCommit, $input->getOption('limit'));
+        $commits = $this->loadCommitList($environment, $startCommit, $input->getOption('limit'), $input->getOption('no-merges') ? 1 : -1);
 
         /** @var PropertyFormatter $formatter */
         $formatter = $this->getService('property_formatter');
@@ -103,10 +104,11 @@ class CommitListCommand extends CommandBase
      * @param \Platformsh\Client\Model\Environment $environment
      * @param \Platformsh\Client\Model\Git\Commit  $startCommit
      * @param int                                  $limit
+     * @param int                                  $maxParents
      *
      * @return \Platformsh\Client\Model\Git\Commit[]
      */
-    private function loadCommitList(Environment $environment, Commit $startCommit, $limit = 10)
+    private function loadCommitList(Environment $environment, Commit $startCommit, $limit = 10, $maxParents = -1)
     {
         /** @var Commit[] $commits */
         $commits = [$startCommit];
@@ -125,7 +127,16 @@ class CommitListCommand extends CommandBase
              count($currentCommit->parents) && count($commits) < $limit;) {
             foreach (array_reverse($currentCommit->parents) as $parentSha) {
                 if (!isset($commits[$parentSha])) {
-                    $commits[$parentSha] = $gitData->getCommit($environment, $parentSha);
+                    $commit = $gitData->getCommit($environment, $parentSha);
+
+                    // If the commit exceeds $maxParents, do not add it to the
+                    // list, but use it to fetch new commits.
+                    if ($maxParents >= 0 && count($commit->parents) > $maxParents) {
+                        $currentCommit = $commit;
+                        continue;
+                    }
+
+                    $commits[$parentSha] = $commit;
                 }
                 $currentCommit = $commits[$parentSha];
                 $progress->advance();
