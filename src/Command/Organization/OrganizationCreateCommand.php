@@ -11,6 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class OrganizationCreateCommand extends OrganizationCommandBase
 {
+    const LABEL_PATTERN = '/^[^<>]+$/';
+    const NAME_PATTERN = '/^[a-z0-9][a-z0-9-]{1,37}[a-z0-9]$/';
+    const UUID_PATTERN = '/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i';
 
     protected function configure()
     {
@@ -34,19 +37,33 @@ END_HELP;
         return Form::fromArray([
             'label' => new Field('Label', [
                 'description' => 'The full name of the organization, e.g. "ACME Inc."',
+                'validator' => function ($value) {
+                    return preg_match(self::LABEL_PATTERN, $value) === 1;
+                },
             ]),
             'name' => new Field('Name', [
                 'description' => 'The organization machine name, used for URL paths and similar purposes.',
                 'defaultCallback' => function ($values) {
                     return isset($values['label']) ? (new Slugify())->slugify($values['label']) : null;
                 },
+                'validator' => function ($value) {
+                    return preg_match(self::NAME_PATTERN, $value) === 1;
+                },
+            ]),
+            'owner_id' => new Field('Owner', [
+                'description' => 'The user ID of the owner (for administrative use).',
+                'avoidQuestion' => true,
+                'required' => false,
+                'validator' => function ($id) {
+                    return preg_match(self::UUID_PATTERN, $id) === 1;
+                },
             ]),
             'country' => new OptionsField('Country', [
                 'description' => 'The organization country. Used as the default for the billing address.',
                 'options' => $countryList,
                 'asChoice' => false,
-                'defaultCallback' => function () use ($countryList) {
-                    if ($this->api()->authApiEnabled()) {
+                'defaultCallback' => function ($values) use ($countryList) {
+                    if ($this->api()->authApiEnabled() && empty($values['owner_id'])) {
                         $userCountry = $this->api()->getUser()->country;
                         if (isset($countryList[$userCountry])) {
                             return $countryList[$userCountry];
@@ -81,7 +98,7 @@ END_HELP;
         }
 
         try {
-            $organization = $client->createOrganization($values['name'], $values['label'], $values['country']);
+            $organization = $client->createOrganization((string) $values['name'], (string) $values['label'], (string) $values['country'], (string) $values['owner_id']);
         } catch (BadResponseException $e) {
             if ($e->getResponse() && $e->getResponse()->getStatusCode() === 409) {
                 $this->stdErr->writeln(\sprintf('An organization already exists with the same name: <error>%s</error>', $values['name']));
