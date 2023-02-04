@@ -53,9 +53,10 @@ class ActivityListCommand extends ActivityCommandBase
              ->addEnvironmentOption();
         $this->addExample('List recent activities for the current environment')
              ->addExample('List all recent activities for the current project', '--all')
-             ->addExample('List recent pushes', '--type environment.push')
-             ->addExample('List pushes made before 15 March', '--type environment.push --start 2015-03-15')
-             ->addExample('List up to 25 incomplete activities', '--limit 25 -i');
+             ->addExample('List recent pushes', '--type %push')
+             ->addExample('List pushes made before 1st April 2014', '--type %push --start 2014-04-01')
+             ->addExample('List up to 25 incomplete activities', '--limit 25 -i')
+             ->addExample('Exclude cron and backup activities', '--exclude-type %cron,%backup%');;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -93,13 +94,16 @@ class ActivityListCommand extends ActivityCommandBase
         }
 
         $rows = [];
+        $typeCounts = [];
         foreach ($activities as $activity) {
+            $type = $activity->type;
+            $typeCounts[$type] = isset($typeCounts[$type]) ? $typeCounts[$type] + 1 : 1;
             $rows[] = [
                 new AdaptiveTableCell($activity->id, ['wrap' => false]),
                 $formatter->format($activity['created_at'], 'created_at'),
                 $formatter->format($activity['completed_at'], 'completed_at'),
                 ActivityMonitor::getFormattedDescription($activity, !$table->formatIsMachineReadable()),
-                new AdaptiveTableCell($activity->type, ['wrap' => false]),
+                new AdaptiveTableCell($type, ['wrap' => false]),
                 $activity->getCompletionPercent() . '%',
                 ActivityMonitor::formatState($activity->state),
                 ActivityMonitor::formatResult($activity->result, !$table->formatIsMachineReadable()),
@@ -138,6 +142,11 @@ class ActivityListCommand extends ActivityCommandBase
                     $max,
                     $executable
                 ));
+            }
+
+            if (count($activities) >= 10 && count($typeCounts) <= 3 && (isset($typeCounts['environment.cron']) || isset($typeCounts['environment.backup']))) {
+                $this->stdErr->writeln('');
+                $this->stdErr->writeln('To exclude common cron and backup activities, use: <info>--exclude-type %cron,%backup%</info>');
             }
 
             $this->stdErr->writeln('');
