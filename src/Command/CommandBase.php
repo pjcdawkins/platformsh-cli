@@ -1877,10 +1877,7 @@ abstract class CommandBase extends Command implements MultiAwareInterface
             $definition->setOptions(array_filter($definition->getOptions(), function (InputOption $opt) {
                 return !$opt instanceof HiddenInputOption;
             }));
-
-            $aliases = $this->getVisibleAliases();
-            $name = $this->getName();
-            $shortName = count($aliases) === 1 ? reset($aliases) : $name;
+            $shortName = $this->getShortestName();
             $this->synopsis[$key] = trim(sprintf(
                 '%s %s %s',
                 $this->config()->get('application.executable'),
@@ -2163,5 +2160,16 @@ abstract class CommandBase extends Command implements MultiAwareInterface
         $questionHelper = $this->getService('question_helper');
         $id = $questionHelper->choose($options, 'Enter a number to choose an organization (<fg=cyan>-o</>):', $default);
         return $byId[$id];
+    }
+
+    public function getShortestName()
+    {
+        $shortest = $this->getName();
+        foreach ($this->getVisibleAliases() as $alias) {
+            if (strlen($shortest) > strlen($alias)) {
+                $shortest = $alias;
+            }
+        }
+        return $shortest;
     }
 }
