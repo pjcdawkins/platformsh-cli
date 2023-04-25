@@ -85,6 +85,9 @@ class Ssh implements InputConfiguringInterface
 
         $options['SendEnv'] = 'TERM';
 
+        // TODO remove this when no longer needed
+        $options['HostKeyAlgorithms'] = '+ssh-rsa';
+
         if ($this->input->hasOption('identity-file') && $this->input->getOption('identity-file')) {
             $file = $this->input->getOption('identity-file');
             if (!file_exists($file)) {

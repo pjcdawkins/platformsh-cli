@@ -30,6 +30,16 @@ class SshConfig {
     /**
      * Creates or updates session-specific SSH configuration.
      *
+     * There is a "session-specific" SSH configuration file, per session,
+     * and then an "includer" file which includes the correct session file,
+     * and then finally the "user" SSH configuration file which is handled
+     * in the addUserSshConfig() method.
+     *
+     * For example:
+     * 1. Session-specific: /home/alice/.platformsh/.session/sess-cli-default/ssh/config
+     * 2. Includer: /home/alice/.platformsh/ssh/session.config
+     * 3. User: /home/alice/.ssh/config
+     *
      * @return bool
      *   True if there is any session configuration, false otherwise.
      */
@@ -111,6 +121,7 @@ class SshConfig {
         $wildcards = $this->config->get('api.ssh_domain_wildcards');
         if (count($wildcards)) {
             $includerLines[] = 'Host ' . implode(' ', $wildcards);
+            $includerLines[] = '  HostKeyAlgorithms +ssh-rsa'; // TODO remove this when no longer needed
             $includerLines[] = '  Include ' . $sessionSpecificFilename;
             $this->writeSshIncludeFile(
                 $includerFilename,
