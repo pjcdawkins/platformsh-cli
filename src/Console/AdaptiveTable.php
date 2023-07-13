@@ -19,6 +19,8 @@ class AdaptiveTable extends Table
 
     /** @var int */
     protected $minColumnWidth;
+    /** @var int */
+    protected $avoidWordBreakWidth = 4;
 
     // The following 3 properties are copies of the private properties in the
     // parent Table class.
@@ -33,7 +35,7 @@ class AdaptiveTable extends Table
      * @param int|null        $maxTableWidth
      * @param int|null        $minColumnWidth
      */
-    public function __construct(OutputInterface $output, $maxTableWidth = null, $minColumnWidth = 10)
+    public function __construct(OutputInterface $output, $maxTableWidth = null, $minColumnWidth = 8)
     {
         $this->outputCopy = $output;
         $this->maxTableWidth = $maxTableWidth !== null
@@ -290,12 +292,12 @@ class AdaptiveTable extends Table
 
                 // Find the minimum width of the cell. The default is configured
                 // in minColumnWidth, but this is overridden for non-wrapping
-                // cells and very narrow cells. Additionally, table headers are
-                // never wrapped.
+                // cells, very narrow cells, and single-word cells that are
+                // close to the minimum column width.
                 $minCellWidth = $this->minColumnWidth;
                 if ($cellWidth < $this->minColumnWidth
                     || ($cell instanceof AdaptiveTableCell && !$cell->canWrap())
-                    || !isset($this->rowsCopy[$rowNum])) {
+                    || ($cellWidth < $this->minColumnWidth + $this->avoidWordBreakWidth && !\preg_match('#[\r\n -]#', (string) $cell))) {
                     $minCellWidth = $cellWidth;
                 }
 
