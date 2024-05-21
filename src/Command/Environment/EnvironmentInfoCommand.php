@@ -6,6 +6,7 @@ use Platformsh\Cli\Command\CommandBase;
 use Platformsh\Cli\Console\AdaptiveTableCell;
 use Platformsh\Cli\Service\Table;
 use Platformsh\Cli\Service\PropertyFormatter;
+use Platformsh\Cli\Util\NestedArrayUtil;
 use Platformsh\Client\Model\Environment;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -124,18 +125,28 @@ class EnvironmentInfoCommand extends CommandBase
             settype($value, $type);
         }
 
-        $currentValue = $environment->getProperty($property, false);
+        $currentValue = $this->api()->getNestedProperty($environment, $property, false);
         if ($currentValue === $value) {
             $this->stdErr->writeln(sprintf(
                 'Property <info>%s</info> already set as: %s',
                 $property,
-                $this->formatter->format($environment->getProperty($property, false), $property)
+                $this->formatter->format($currentValue, $property)
             ));
 
             return 0;
         }
+        if (strpos($property, '.') !== false) {
+            $parents = explode('.', $property);
+            $propertyName = array_shift($parents);
+            $parentValue = $environment->getProperty($propertyName, true, false);
+            NestedArrayUtil::setNestedArrayValue($parentValue, $parents, $value);
+            $patch = [$propertyName => $parentValue];
+        } else {
+            $patch = [$property => $value];
+        }
+
         try {
-            $result = $environment->update([$property => $value]);
+            $result = $environment->update($patch);
         } catch (BadResponseException $e) {
             // Translate validation error messages.
             if (($response = $e->getResponse()) && $response->getStatusCode() === 400 && ($body = $response->getBody())) {
@@ -147,10 +158,11 @@ class EnvironmentInfoCommand extends CommandBase
             }
             throw $e;
         }
+
         $this->stdErr->writeln(sprintf(
             'Property <info>%s</info> set to: %s',
             $property,
-            $this->formatter->format($environment->$property, $property)
+            $this->formatter->format($this->api()->getNestedProperty($environment, $property, false), $property)
         ));
 
         $this->api()->clearEnvironmentsCache($environment->project);
@@ -183,6 +195,7 @@ class EnvironmentInfoCommand extends CommandBase
             'title' => 'string',
             'restrict_robots' => 'boolean',
             'type' => 'string',
+            'backups.manual_count' => 'int',
         ];
 
         return isset($writableProperties[$property]) ? $writableProperties[$property] : false;

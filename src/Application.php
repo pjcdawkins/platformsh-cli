@@ -238,6 +238,9 @@ class Application extends ParentApplication
         $commands[] = new Command\Backup\BackupGetCommand();
         $commands[] = new Command\Backup\BackupListCommand();
         $commands[] = new Command\Backup\BackupRestoreCommand();
+        $commands[] = new Command\Backup\Schedule\BackupScheduleAddCommand();
+        $commands[] = new Command\Backup\Schedule\BackupScheduleDeleteCommand();
+        $commands[] = new Command\Backup\Schedule\BackupScheduleListCommand();
         $commands[] = new Command\Resources\ResourcesGetCommand();
         $commands[] = new Command\Resources\ResourcesSizeListCommand();
         $commands[] = new Command\Resources\ResourcesSetCommand();
